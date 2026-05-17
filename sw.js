@@ -1,5 +1,5 @@
 const CACHE = 'tiendamax-v1';
-const ARCHIVOS = ['/index.html', '/manifest.json'];
+const ARCHIVOS = ['/Vale-de-venta-Tiendamax/', '/Vale-de-venta-Tiendamax/manifest.json'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ARCHIVOS)));
