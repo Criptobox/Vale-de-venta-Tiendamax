@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#075E54">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TiendaMax">
+<link rel="manifest" href="manifest.json">
+<title>TiendaMax — Vales</title>
+<style>
+:root {
+  --verde:  #075E54;
+  --verde2: #128C7E;
+  --vpale:  #e8f5e9;
+  --acento: #25D366;
+  --t1: #1a1a1a; --t2: #555; --t3: #888;
+  --borde: #e0e0e0;
+  --fondo: #f5f5f0;
+  --card:  #fff;
+  --r: 14px; --rs: 8px;
+  --warn: #c62828; --warn-bg: #ffebee;
+  --info: #1565c0; --info-bg: #e3f2fd;
+  --toggle-bg: rgba(255,255,255,.15);
+}
+[data-theme="dark"] {
+  --verde:  #075E54;
+  --verde2: #25D366;
+  --vpale:  #0d2b1a;
+  --acento: #25D366;
+  --t1: #f0f0f0; --t2: #aaa; --t3: #666;
+  --borde: #2a2a2a;
+  --fondo: #0e0e0e;
+  --card:  #1a1a1a;
+  --warn: #ef5350; --warn-bg: #1a0000;
+  --info: #64b5f6; --info-bg: #0a1929;
+  --toggle-bg: rgba(0,0,0,.25);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+[data-theme="dark"] input,[data-theme="dark"] select,[data-theme="dark"] textarea{background:#111;color:var(--t1);border-color:var(--borde)}
+[data-theme="dark"] input:focus,[data-theme="dark"] select:focus{background:#1a1a1a;border-color:var(--verde2)}
+[data-theme="dark"] input[readonly]{background:#0a0a0a;color:var(--t2)}
+[data-theme="dark"] .drop{background:#1a1a1a;border-color:#333}
+[data-theme="dark"] .drop-item:hover,[data-theme="dark"] .drop-item:active{background:#222}
+[data-theme="dark"] .drop-cat{background:#111;border-color:#222}
+[data-theme="dark"] .modal-box{background:#1a1a1a;color:var(--t1)}
+[data-theme="dark"] .mbtn{background:#222;color:var(--t1);border-color:#333}
+[data-theme="dark"] .ci{background:#111;border-color:var(--borde)}
+[data-theme="dark"] .ci-cant{background:#1a1a1a;color:var(--t1);border-color:#333}
+[data-theme="dark"] .vale-card{background:#1a1a1a;border-color:#2a2a2a}
+[data-theme="dark"] .vale-body{color:var(--t1)}
+[data-theme="dark"] .vale-pol{background:#111;color:var(--t2)}
+[data-theme="dark"] .btn-act{background:#1a1a1a;color:var(--t1);border-color:#333}
+[data-theme="dark"] .btn-reset{color:var(--t3);border-color:#2a2a2a}
+[data-theme="dark"] .install-banner{background:#0d2b4e}
+[data-theme="dark"] .ubic-resultado{background:#0d2b1a;border-color:#2e7d32}
+[data-theme="dark"] .calc-strip{background:#111;border-color:#2a2a2a}
+[data-theme="dark"] .calc-strip.hi{background:#0d2b1a;border-color:#2e7d32}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--fondo);color:var(--t1);min-height:100vh;padding-bottom:80px}
+
+/* HEADER */
+header{background:var(--verde);color:#fff;padding:14px 16px;padding-top:calc(14px + env(safe-area-inset-top));display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.logo-circle{width:40px;height:40px;border-radius:50%;background:var(--acento);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0}
+.logo-text h1{font-size:15px;font-weight:700}
+.logo-text p{font-size:11px;opacity:.7;margin-top:1px}
+.reloj{margin-left:auto;background:rgba(255,255,255,.15);border-radius:20px;padding:3px 10px;font-size:13px;font-variant-numeric:tabular-nums;flex-shrink:0}
+
+/* BANNER TASA */
+.tasa-banner{background:linear-gradient(135deg,#1b5e20,#2e7d32);color:#fff;padding:8px 14px;display:flex;align-items:center;gap:8px;font-size:12px;flex-wrap:wrap}
+.tasa-val{font-size:15px;font-weight:700;background:rgba(255,255,255,.18);padding:2px 10px;border-radius:6px;font-variant-numeric:tabular-nums}
+.tasa-sub{opacity:.8;font-size:11px}
+.btn-editar{margin-left:auto;background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:6px;padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px}
+.btn-editar:active{background:rgba(255,255,255,.35)}
+
+/* INSTALL BANNER */
+.install-banner{display:none;background:#1565c0;color:#fff;padding:10px 14px;align-items:center;gap:10px;font-size:13px}
+.install-banner button{background:#fff;color:#1565c0;border:none;border-radius:6px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+.install-banner .close-btn{margin-left:auto;background:none;border:none;color:#fff;font-size:18px;cursor:pointer;padding:0 4px}
+
+/* CONTAINER */
+.wrap{max-width:520px;margin:0 auto;padding:12px}
+
+/* CARD */
+.card{background:var(--card);border-radius:var(--r);border:1px solid var(--borde);padding:14px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.card-title{font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.card-title::before{content:'';display:inline-block;width:3px;height:12px;background:var(--verde2);border-radius:2px}
+
+/* FIELDS */
+.field{margin-bottom:10px}
+.field:last-child{margin-bottom:0}
+label{display:block;font-size:12px;color:var(--t2);margin-bottom:4px;font-weight:500}
+input,select,textarea{width:100%;padding:10px 12px;border:1.5px solid var(--borde);border-radius:var(--rs);font-size:14px;font-family:inherit;color:var(--t1);background:#fafafa;transition:border-color .15s,box-shadow .15s;-webkit-appearance:none;appearance:none}
+input:focus,select:focus{outline:none;border-color:var(--verde2);background:#fff;box-shadow:0 0 0 3px rgba(18,140,126,.12)}
+input[readonly]{background:#f0f0ec;color:var(--t2)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.lbl-hint{color:var(--t3);font-weight:400}
+
+/* BUSCADOR */
+.search-wrap{position:relative;margin-bottom:8px}
+.search-wrap input{padding-left:36px}
+.search-ico{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--t3);pointer-events:none}
+.drop{display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1.5px solid var(--verde2);border-radius:var(--rs);box-shadow:0 6px 24px rgba(0,0,0,.15);max-height:260px;overflow-y:auto;z-index:50}
+.drop.open{display:block}
+.drop-cat{padding:5px 12px 2px;font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;background:#fafafa;border-bottom:1px solid var(--borde);position:sticky;top:0}
+.drop-item{padding:10px 12px;cursor:pointer;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;gap:8px;transition:background .1s}
+.drop-item:last-child{border-bottom:none}
+.drop-item:hover,.drop-item:active{background:var(--vpale)}
+.drop-item.agotado{opacity:.4;pointer-events:none}
+.di-nom{font-size:13px;font-weight:500}
+.di-precio{font-size:12px;color:var(--verde2);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.di-tag{font-size:10px;padding:1px 6px;border-radius:10px}
+.di-tag.ok{background:#e8f5e9;color:#2e7d32}
+.di-tag.no{background:#ffebee;color:#c62828}
+.drop-empty{padding:14px 12px;text-align:center;font-size:13px;color:var(--t3)}
+
+/* CARRITO */
+.carrito-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.carrito-lbl{font-size:12px;font-weight:600;color:var(--t2)}
+.btn-add{background:var(--vpale);border:1px dashed #81c784;border-radius:6px;padding:5px 10px;font-size:12px;color:#2e7d32;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:4px}
+.ci{background:var(--fondo);border:1px solid var(--borde);border-radius:var(--rs);padding:9px 10px;display:grid;grid-template-columns:1fr 52px auto auto;gap:6px;align-items:center;margin-bottom:5px}
+.ci-nom{font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ci-cant{border:1px solid var(--borde);border-radius:6px;padding:4px 4px;font-size:13px;width:52px;text-align:center;background:#fff;font-family:inherit}
+.ci-precio{font-size:12px;color:var(--verde2);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ci-del{background:none;border:none;color:var(--t3);cursor:pointer;font-size:17px;padding:2px 4px;border-radius:4px;line-height:1}
+.ci-del:active{background:var(--warn-bg);color:var(--warn)}
+.cart-total{background:var(--verde);color:#fff;border-radius:var(--rs);padding:9px 14px;display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-size:13px;font-weight:600}
+.cart-total span:last-child{font-size:15px;font-variant-numeric:tabular-nums}
+.cart-empty{text-align:center;padding:14px 0;font-size:13px;color:var(--t3)}
+
+/* UBICACION */
+.ubic-opciones{display:flex;flex-direction:column;gap:8px}
+.ubic-label-sec{font-size:11px;color:var(--t3);font-weight:600;margin-bottom:3px;text-transform:uppercase;letter-spacing:.05em}
+.ubic-row{display:flex;gap:8px;align-items:center}
+.ubic-row input{flex:1}
+.btn-gps{flex-shrink:0;height:40px;padding:0 12px;background:var(--info-bg);border:1.5px solid #90caf9;border-radius:var(--rs);color:var(--info);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.ubic-estado{font-size:11px;margin-top:3px;color:var(--t3);min-height:14px}
+.ubic-resultado{display:none;margin-top:8px;background:var(--vpale);border:1px solid #a5d6a7;border-radius:var(--rs);padding:8px 12px}
+.ubic-resultado .ur-lbl{font-size:11px;color:#2e7d32;font-weight:700;margin-bottom:2px}
+.ubic-resultado .ur-val{font-size:12px;color:var(--t1);word-break:break-all}
+.maps-link{display:none;font-size:11px;color:var(--info);text-decoration:none;margin-top:4px;font-weight:500}
+
+/* CALC */
+.calc-strip{background:var(--fondo);border-radius:var(--rs);padding:9px 12px;display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:13px;color:var(--t2);border:1px solid var(--borde)}
+.calc-strip .cv{font-weight:700;color:var(--t1);font-variant-numeric:tabular-nums}
+.calc-strip.hi{background:var(--vpale);border-color:#a5d6a7}
+.calc-strip.hi .cv{color:#2e7d32}
+.tasa-badge{font-size:11px;background:var(--vpale);color:#2e7d32;padding:2px 8px;border-radius:10px;font-weight:700;margin-left:auto;font-variant-numeric:tabular-nums}
+
+/* BOTON GENERAR */
+.btn-gen{width:100%;padding:15px;background:var(--verde);color:#fff;border:none;border-radius:var(--r);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 2px 8px rgba(7,94,84,.3);transition:background .15s}
+.btn-gen:active{background:#053d36}
+
+/* VALE */
+.vale-wrap{display:none}
+.vale-card{background:#fff;border-radius:var(--r);border:1px solid var(--borde);overflow:hidden;margin-bottom:10px;box-shadow:0 2px 10px rgba(0,0,0,.07)}
+.vale-hdr{background:var(--verde);color:#fff;padding:12px 16px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px}
+.vale-body{padding:16px;font-family:'Courier New',monospace;font-size:12.5px;line-height:2;color:var(--t1);white-space:pre-wrap;word-break:break-word}
+.vale-pol{border-top:1px solid var(--borde);padding:12px 16px;font-size:11.5px;color:var(--t2);line-height:1.8;background:#fafafa}
+.vale-pol strong{color:var(--t1);display:block;margin-bottom:4px;font-size:10px;text-transform:uppercase;letter-spacing:.05em}
+.btn-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.btn-act{padding:12px;border-radius:var(--rs);border:1px solid var(--borde);background:#fff;font-size:13px;font-weight:500;font-family:inherit;cursor:pointer;color:var(--t1);display:flex;align-items:center;justify-content:center;gap:6px}
+.btn-act.pri{background:var(--acento);color:#fff;border-color:var(--acento)}
+.btn-act:active{opacity:.85}
+.btn-reset{width:100%;padding:11px;border-radius:var(--rs);border:1px solid var(--borde);background:transparent;font-size:13px;font-family:inherit;color:var(--t3);cursor:pointer}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(10px);background:#1a1a1a;color:#fff;padding:10px 18px;border-radius:24px;font-size:13px;font-weight:500;opacity:0;transition:opacity .2s,transform .2s;z-index:999;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* MODAL TASA */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:flex-end;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal-box{background:#fff;border-radius:var(--r) var(--r) 0 0;padding:20px;width:100%;max-width:520px}
+.modal-box h3{font-size:15px;font-weight:700;margin-bottom:4px}
+.modal-box p{font-size:12px;color:var(--t2);margin-bottom:14px}
+.modal-box input{margin-bottom:12px}
+.modal-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mbtn{padding:12px;border-radius:var(--rs);border:1px solid var(--borde);font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;background:#fff;color:var(--t1)}
+.mbtn.ok{background:var(--verde);color:#fff;border-color:var(--verde)}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<!-- Modal editar tasa -->
+<div class="modal-overlay" id="modal-tasa">
+  <div class="modal-box">
+    <h3>✏️ Editar tasa ElToque</h3>
+    <p id="modal-sub">Última: <strong id="modal-ultima"></strong> · <span id="modal-fecha"></span></p>
+    <label>Tasa ElToque (solo el número, sin el +10)</label>
+    <input id="modal-input" type="number" placeholder="Ej: 546" inputmode="numeric">
+    <div class="modal-btns">
+      <button class="mbtn" onclick="cerrarModal()">Cancelar</button>
+      <button class="mbtn ok" onclick="guardarTasa()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Install banner -->
+<div class="install-banner" id="install-banner">
+  <span>📲 Instala TiendaMax como app</span>
+  <button id="btn-install">Instalar</button>
+  <button class="close-btn" onclick="cerrarInstall()">✕</button>
+</div>
+
+<header>
+  <div class="logo-circle">T</div>
+  <div class="logo-text">
+    <h1>TiendaMax</h1>
+    <p>Generador de vales</p>
+  </div>
+  <div class="reloj" id="reloj">--:--</div>
+  <button id="btn-dark" onclick="toggleDark()" aria-label="Modo oscuro" style="background:var(--toggle-bg);border:none;color:#fff;border-radius:8px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:17px;flex-shrink:0">🌙</button>
+</header>
+
+<div class="tasa-banner">
+  <span>💵 ElToque:</span>
+  <span class="tasa-val" id="tv-toke">—</span>
+  <span class="tasa-sub" id="tv-sub"></span>
+  <button class="btn-editar" onclick="abrirModal()">✏ Editar</button>
+</div>
+
+<div class="wrap">
+
+  <!-- Promotor -->
+  <div class="card">
+    <div class="card-title">Promotor</div>
+    <div class="field">
+      <label>Nombre del promotor</label>
+      <input id="promotor" type="text" placeholder="Tu nombre completo">
+    </div>
+  </div>
+
+  <!-- Artículos -->
+  <div class="card">
+    <div class="card-title">Artículos</div>
+
+    <div class="field">
+      <label>Buscar producto</label>
+      <div class="search-wrap" id="sw">
+        <svg class="search-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <input id="buscador" type="text" placeholder="Escribe nombre o categoría…" autocomplete="off" oninput="buscar()" onfocus="mostrarDrop()">
+        <div class="drop" id="drop"></div>
+      </div>
+    </div>
+
+    <div class="carrito-hdr">
+      <span class="carrito-lbl">📦 Productos seleccionados</span>
+      <button class="btn-add" onclick="document.getElementById('buscador').focus()">+ Añadir</button>
+    </div>
+    <div id="carrito-list"><div class="cart-empty">Busca y agrega productos arriba</div></div>
+    <div class="cart-total" id="cart-total" style="display:none">
+      <span>Total</span>
+      <span id="cart-total-val">—</span>
+    </div>
+
+    <div class="field" style="margin-top:10px">
+      <label>Artículo extra <span class="lbl-hint">(opcional)</span></label>
+      <input id="articulo" type="text" placeholder="Ej: Accesorio adicional x1">
+    </div>
+    <div class="field">
+      <label>Mensajería / envío</label>
+      <input id="mensajeria" type="text" placeholder="Ej: MiMoto — $5 USD">
+    </div>
+    <div class="field">
+      <label>Garantía</label>
+      <input id="garantia" type="text" placeholder="Ej: 3 meses">
+    </div>
+  </div>
+
+  <!-- Cliente -->
+  <div class="card">
+    <div class="card-title">Datos del cliente</div>
+    <div class="field">
+      <label>Nombre completo</label>
+      <input id="nombre" type="text" placeholder="Nombre y apellidos">
+    </div>
+    <div class="field">
+      <label>Teléfono</label>
+      <input id="telefono" type="tel" placeholder="+53 5XXX XXXX">
+    </div>
+    <div class="field">
+      <label>Dirección / municipio</label>
+      <input id="direccion" type="text" placeholder="Calle, número, municipio">
+    </div>
+
+    <!-- Ubicación -->
+    <div class="field">
+      <label>Ubicación <span class="lbl-hint">(opcional)</span></label>
+      <div class="ubic-opciones">
+
+        <div>
+          <div class="ubic-label-sec">📲 Link de WhatsApp</div>
+          <input id="wa-link" type="url" placeholder="https://maps.app.goo.gl/…" oninput="procesarWA()">
+          <div class="ubic-estado" id="wa-estado"></div>
+        </div>
+
+        <div class="ubic-row">
+          <button class="btn-gps" onclick="obtenerGPS()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+            <span id="gps-txt">Mi GPS</span>
+          </button>
+          <input id="ubicacion-manual" type="text" placeholder="O escribe la dirección…" oninput="ubicManual()">
+        </div>
+
+        <div class="ubic-resultado" id="ubic-res">
+          <div class="ur-lbl">📍 Ubicación guardada</div>
+          <div class="ur-val" id="ubic-val"></div>
+          <a class="maps-link" id="maps-link" target="_blank">Abrir en Google Maps →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Precios -->
+  <div class="card">
+    <div class="card-title">
+      Precios y pago
+      <span class="tasa-badge" id="tasa-badge">— CUP</span>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label>Precio USD / Zelle</label>
+        <input id="precioUSD" type="number" placeholder="0.00" step="0.01" inputmode="decimal" oninput="calcular()">
+      </div>
+      <div class="field">
+        <label>Tasa CUP × USD</label>
+        <input id="tasa" type="number" placeholder="556" inputmode="numeric" oninput="calcular()">
+      </div>
+    </div>
+    <div class="calc-strip">
+      <span>Precio manual (CUP)</span>
+      <span class="cv" id="c-cup">—</span>
+    </div>
+    <div class="calc-strip hi" id="c-strip-cart" style="display:none">
+      <span>Total carrito (CUP)</span>
+      <span class="cv" id="c-cart-cup">—</span>
+    </div>
+    <div class="row2" style="margin-top:10px">
+      <div class="field">
+        <label>Recibido CUP</label>
+        <input id="recibido" type="number" placeholder="0" inputmode="numeric" oninput="calcular()">
+      </div>
+      <div class="field">
+        <label>Vuelto</label>
+        <input id="vuelto" type="text" readonly>
+      </div>
+    </div>
+    <div class="calc-strip hi">
+      <span>Total a pagar</span>
+      <span class="cv" id="c-total">—</span>
+    </div>
+  </div>
+
+  <button class="btn-gen" onclick="generar()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+    Generar vale
+  </button>
+
+  <!-- Vale generado -->
+  <div class="vale-wrap" id="vale-wrap">
+    <div class="vale-card">
+      <div class="vale-hdr">🧾 Vale de venta — TiendaMax</div>
+      <div class="vale-body" id="vale-body"></div>
+      <div class="vale-pol">
+        <strong>⚠ Políticas de pago</strong>
+        🕐 Atención: 8:00am – 8:00pm<br>
+        💵 Máx. 5 billetes de $1 USD por compra<br>
+        💰 Pagos CUP: billetes de 50 en adelante<br>
+        ✅ Solo billetes en buen estado
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-act pri" onclick="copiar()">
+        📋 Copiar vale
+      </button>
+      <button class="btn-act" onclick="compartirWA()">
+        💬 WhatsApp
+      </button>
+    </div>
+    <button class="btn-reset" onclick="resetear()">↺ Nuevo vale</button>
+  </div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════
+//  TASA — fija, editable manualmente
+//  Fuente: ElToque | 16/05/2026 = 546
+// ═══════════════════════════════════════
+var TASA_TOKE   = 546;
+var SOBRECARGO  = 10;
+var FECHA_TASA  = '16/05/2026';
+
+function tasaFinal() { return TASA_TOKE + SOBRECARGO; }
+
+function refrescarBanner() {
+  var tf = tasaFinal();
+  document.getElementById('tv-toke').textContent  = TASA_TOKE + ' CUP/USD';
+  document.getElementById('tv-sub').textContent   = '+' + SOBRECARGO + ' TiendaMax = ' + tf + '  (' + FECHA_TASA + ')';
+  document.getElementById('tasa').value           = tf;
+  document.getElementById('tasa-badge').textContent = tf + ' CUP';
+  calcular();
+}
+
+function abrirModal() {
+  document.getElementById('modal-ultima').textContent = TASA_TOKE + ' CUP/USD';
+  document.getElementById('modal-fecha').textContent  = FECHA_TASA;
+  document.getElementById('modal-input').value = TASA_TOKE;
+  document.getElementById('modal-tasa').classList.add('open');
+  setTimeout(function(){ document.getElementById('modal-input').focus(); }, 200);
+}
+function cerrarModal() { document.getElementById('modal-tasa').classList.remove('open'); }
+function guardarTasa() {
+  var v = parseInt(document.getElementById('modal-input').value);
+  if (!v || v < 100 || v > 9999) { toast('Número inválido (debe ser 100–9999)'); return; }
+  TASA_TOKE  = v;
+  var hoy = new Date();
+  FECHA_TASA = ('0'+hoy.getDate()).slice(-2)+'/'+('0'+(hoy.getMonth()+1)).slice(-2)+'/'+hoy.getFullYear();
+  // Guardar en localStorage para persistir
+  try { localStorage.setItem('tm_tasa', JSON.stringify({t: TASA_TOKE, f: FECHA_TASA})); } catch(e){}
+  cerrarModal();
+  refrescarBanner();
+  toast('✅ Tasa actualizada: ' + TASA_TOKE + ' + ' + SOBRECARGO + ' = ' + tasaFinal() + ' CUP');
+}
+
+// Cargar tasa guardada si existe
+(function(){
+  try {
+    var s = localStorage.getItem('tm_tasa');
+    if (s) { var d = JSON.parse(s); if (d.t >= 100) { TASA_TOKE = d.t; FECHA_TASA = d.f || FECHA_TASA; } }
+  } catch(e){}
+  refrescarBanner();
+})();
+
+// ═══════════════════════════════════════
+//  RELOJ
+// ═══════════════════════════════════════
+function tickReloj() {
+  var d = new Date();
+  document.getElementById('reloj').textContent =
+    ('0'+d.getHours()).slice(-2) + ':' + ('0'+d.getMinutes()).slice(-2);
+}
+tickReloj(); setInterval(tickReloj, 30000);
+
+// ═══════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════
+var _tt;
+function toast(msg, dur) {
+  var el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(_tt); _tt = setTimeout(function(){ el.classList.remove('show'); }, dur || 2500);
+}
+
+// ═══════════════════════════════════════
+//  PRODUCTOS (desde GitHub)
+// ═══════════════════════════════════════
+var productos = [];
+var carrito   = [];
+
+fetch('https://raw.githubusercontent.com/Criptobox/Tiendamax/main/productos.json')
+  .then(function(r){ return r.ok ? r.json() : []; })
+  .then(function(d){ productos = d || []; })
+  .catch(function(){ productos = []; });
+
+// ═══════════════════════════════════════
+//  BUSCADOR
+// ═══════════════════════════════════════
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function buscar() {
+  var q = document.getElementById('buscador').value.trim().toLowerCase();
+  var lista = q
+    ? productos.filter(function(p){ return p.nombre.toLowerCase().includes(q) || (p.categoria||'').toLowerCase().includes(q); })
+    : productos.slice(0, 40);
+  renderDrop(lista);
+  document.getElementById('drop').classList.add('open');
+}
+
+function mostrarDrop() {
+  if (!document.getElementById('buscador').value.trim()) buscar();
+  document.getElementById('drop').classList.add('open');
+}
+
+function renderDrop(lista) {
+  var drop = document.getElementById('drop');
+  if (!lista.length) { drop.innerHTML = '<div class="drop-empty">Sin resultados</div>'; return; }
+  var cats = {};
+  lista.forEach(function(p){
+    var c = p.categoria || 'Otros';
+    if (!cats[c]) cats[c] = [];
+    cats[c].push(p);
+  });
+  var html = '';
+  Object.keys(cats).sort().forEach(function(cat){
+    html += '<div class="drop-cat">'+esc(cat)+'</div>';
+    cats[cat].forEach(function(p){
+      var ag = p.stock <= 0;
+      html += '<div class="drop-item'+(ag?' agotado':'')+'" onclick="agregarItem(\''+p.id+'\')">'
+        + '<span class="di-nom">'+esc(p.nombre)+'</span>'
+        + '<span style="display:flex;align-items:center;gap:5px">'
+        + '<span class="di-precio">$'+parseFloat(p.precioActual).toFixed(2)+'</span>'
+        + '<span class="di-tag '+(ag?'no':'ok')+'">'+(ag?'Agotado':'OK')+'</span>'
+        + '</span></div>';
+    });
+  });
+  drop.innerHTML = html;
+}
+
+document.addEventListener('click', function(e){
+  if (!document.getElementById('sw').contains(e.target))
+    document.getElementById('drop').classList.remove('open');
+});
+
+// ═══════════════════════════════════════
+//  CARRITO
+// ═══════════════════════════════════════
+function agregarItem(id) {
+  var p = productos.find(function(x){ return String(x.id) === String(id); });
+  if (!p) return;
+  var ex = carrito.find(function(x){ return x.id === String(id); });
+  if (ex) ex.cant++;
+  else carrito.push({ id: String(id), nom: p.nombre, precio: parseFloat(p.precioActual), cant: 1 });
+  document.getElementById('buscador').value = '';
+  document.getElementById('drop').classList.remove('open');
+  renderCarrito(); calcular();
+  toast('✅ ' + p.nombre + ' agregado');
+}
+
+function cambiarCant(id, v) {
+  var it = carrito.find(function(x){ return x.id === id; });
+  if (it) { it.cant = Math.max(1, parseInt(v)||1); renderCarrito(); calcular(); }
+}
+
+function eliminarItem(id) {
+  carrito = carrito.filter(function(x){ return x.id !== id; });
+  renderCarrito(); calcular();
+}
+
+function renderCarrito() {
+  var list  = document.getElementById('carrito-list');
+  var total = document.getElementById('cart-total');
+  if (!carrito.length) {
+    list.innerHTML = '<div class="cart-empty">Busca y agrega productos arriba</div>';
+    total.style.display = 'none'; return;
+  }
+  var html = '';
+  carrito.forEach(function(it){
+    html += '<div class="ci">'
+      + '<span class="ci-nom" title="'+esc(it.nom)+'">'+esc(it.nom)+'</span>'
+      + '<input class="ci-cant" type="number" min="1" value="'+it.cant+'" onchange="cambiarCant(\''+it.id+'\',this.value)">'
+      + '<span class="ci-precio">$'+(it.precio*it.cant).toFixed(2)+'</span>'
+      + '<button class="ci-del" onclick="eliminarItem(\''+it.id+'\')">✕</button>'
+      + '</div>';
+  });
+  list.innerHTML = html;
+  var sum = carrito.reduce(function(s,x){ return s + x.precio*x.cant; }, 0);
+  document.getElementById('cart-total-val').textContent = '$' + sum.toFixed(2) + ' USD';
+  total.style.display = 'flex';
+}
+
+// ═══════════════════════════════════════
+//  CALCULADORA
+// ═══════════════════════════════════════
+var precioCUP = 0;
+
+function calcular() {
+  var tasa     = parseFloat(document.getElementById('tasa').value) || tasaFinal();
+  var manUSD   = parseFloat(document.getElementById('precioUSD').value) || 0;
+  var cartUSD  = carrito.reduce(function(s,x){ return s+x.precio*x.cant; }, 0);
+  var totalUSD = cartUSD > 0 ? cartUSD : manUSD;
+  precioCUP    = Math.round(totalUSD * tasa);
+
+  document.getElementById('c-cup').textContent = manUSD > 0 ? Math.round(manUSD*tasa).toLocaleString()+' CUP' : '—';
+
+  var sc = document.getElementById('c-strip-cart');
+  if (cartUSD > 0) {
+    document.getElementById('c-cart-cup').textContent = precioCUP.toLocaleString()+' CUP';
+    sc.style.display = 'flex';
+  } else sc.style.display = 'none';
+
+  document.getElementById('c-total').textContent = precioCUP > 0 ? precioCUP.toLocaleString()+' CUP' : '—';
+
+  var recib = parseFloat(document.getElementById('recibido').value) || 0;
+  if (recib > 0 && precioCUP > 0) {
+    var vuelto = recib - precioCUP;
+    var el = document.getElementById('vuelto');
+    el.value = vuelto >= 0 ? vuelto.toLocaleString()+' CUP' : 'Falta: '+Math.abs(vuelto).toLocaleString()+' CUP';
+    el.style.color = vuelto >= 0 ? '#2e7d32' : '#c62828';
+  } else document.getElementById('vuelto').value = '';
+}
+
+// ═══════════════════════════════════════
+//  UBICACIÓN
+// ═══════════════════════════════════════
+function mostrarUbic(texto, url) {
+  document.getElementById('ubic-val').textContent = texto;
+  var ml = document.getElementById('maps-link');
+  if (url) { ml.href = url; ml.style.display = 'inline'; }
+  else ml.style.display = 'none';
+  document.getElementById('ubic-res').style.display = 'block';
+}
+
+function procesarWA() {
+  var val = document.getElementById('wa-link').value.trim();
+  var est = document.getElementById('wa-estado');
+  if (!val) { est.textContent = ''; return; }
+  if (!/maps\.app\.goo\.gl|maps\.google\.com|google\.com\/maps/i.test(val)) {
+    est.textContent = 'No parece un link de Google Maps'; est.style.color = '#c62828'; return;
+  }
+  // Intentar extraer coordenadas @lat,lng
+  var m = val.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+  if (m) {
+    mostrarUbic(m[1]+', '+m[2], 'https://maps.google.com/?q='+m[1]+','+m[2]);
+    est.textContent = '✅ Coordenadas extraídas'; est.style.color = '#2e7d32'; return;
+  }
+  // q= param
+  var q = val.match(/[?&]q=([^&]+)/);
+  if (q) {
+    mostrarUbic(decodeURIComponent(q[1]), val);
+    est.textContent = '✅ Ubicación extraída'; est.style.color = '#2e7d32'; return;
+  }
+  // Link corto: guardar tal cual
+  mostrarUbic('Ver en Maps →', val);
+  est.textContent = '✅ Link guardado'; est.style.color = '#2e7d32';
+}
+
+function obtenerGPS() {
+  if (!navigator.geolocation) { toast('GPS no disponible'); return; }
+  var btn = document.getElementById('gps-txt');
+  btn.textContent = '…';
+  navigator.geolocation.getCurrentPosition(
+    function(pos) {
+      var lat = pos.coords.latitude.toFixed(6);
+      var lng = pos.coords.longitude.toFixed(6);
+      mostrarUbic(lat+', '+lng, 'https://maps.google.com/?q='+lat+','+lng);
+      btn.textContent = '✅ OK'; toast('📍 Ubicación obtenida');
+      setTimeout(function(){ btn.textContent = 'Mi GPS'; }, 3000);
+    },
+    function(e) {
+      var msgs = {1:'Permiso denegado',2:'No disponible',3:'Tiempo agotado'};
+      toast('⚠️ '+(msgs[e.code]||'Error GPS'));
+      btn.textContent = 'Mi GPS';
+    },
+    { timeout: 10000, enableHighAccuracy: true }
+  );
+}
+
+function ubicManual() {
+  var v = document.getElementById('ubicacion-manual').value.trim();
+  if (v) mostrarUbic(v, null);
+  else document.getElementById('ubic-res').style.display = 'none';
+}
+
+// ═══════════════════════════════════════
+//  FECHA
+// ═══════════════════════════════════════
+function fecHora() {
+  var d = new Date();
+  return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear()
+    +' '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);
+}
+
+// ═══════════════════════════════════════
+//  GENERAR VALE
+// ═══════════════════════════════════════
+var valeTexto = '';
+
+function generar() {
+  var g = function(id){ return (document.getElementById(id)||{}).value||''; };
+  var promotor  = g('promotor')   || '___________';
+  var nombre    = g('nombre')     || '___________';
+  var telefono  = g('telefono')   || '___________';
+  var direccion = g('direccion')  || '___________';
+  var mensajeria= g('mensajeria') || '___________';
+  var garantia  = g('garantia')   || '___________';
+  var artExtra  = g('articulo');
+  var tasa      = g('tasa')       || tasaFinal();
+
+  // Ubicacion
+  var ubicTxt = document.getElementById('ubic-val').textContent || '';
+  var ubicLink = document.getElementById('maps-link').href || '';
+  var ubicLinea = ubicTxt ? ('🔸 Ubicación: ' + ubicTxt + (ubicLink && ubicLink !== '#' ? '\n   → ' + ubicLink : '') + '\n') : '';
+
+  // Productos
+  var lineasProd = '';
+  if (carrito.length) {
+    carrito.forEach(function(it, i){
+      lineasProd += '🔸 Artículo '+(i+1)+': '+it.nom+' x'+it.cant+' — $'+(it.precio*it.cant).toFixed(2)+' USD\n';
+    });
+    if (artExtra) lineasProd += '🔸 Adicional: '+artExtra+'\n';
+  } else {
+    lineasProd = '🔸 Artículo: '+(artExtra || '___________')+'\n';
+  }
+
+  var cartUSD = carrito.reduce(function(s,x){ return s+x.precio*x.cant; }, 0);
+  var manUSD  = parseFloat(g('precioUSD')) || 0;
+  var totUSD  = cartUSD > 0 ? cartUSD : manUSD;
+  var usdStr  = totUSD > 0 ? '$'+totUSD.toFixed(2)+' USD' : '___________';
+  var cupStr  = precioCUP > 0 ? precioCUP.toLocaleString()+' CUP' : '___________';
+  var vueltoStr = g('vuelto') || '___________';
+
+  valeTexto =
+'🔸 Promotor: '+promotor+'\n\n'
++'🔸 Cliente: '+nombre+'\n'
++'🔸 Teléfono: '+telefono+'\n'
++'🔸 Dirección: '+direccion+'\n'
++ubicLinea
++'🔸 Mensajería: '+mensajeria+'\n\n'
++lineasProd+'\n'
++'🔸 Precio USD/Zelle: '+usdStr+'\n'
++'🔸 Tasa aplicada: '+tasa+' CUP/USD\n'
++'🔸 Precio CUP: '+cupStr+'\n'
++'🔸 Vuelto: '+vueltoStr+'\n'
++'🔸 Total a pagar: '+cupStr+'\n'
++'*Garantía: '+garantia+'\n'
++'*Fecha: '+fecHora()+'\n\n'
++'⚠️ POLÍTICAS DE PAGO:\n'
++'🕐 Atención: 8:00am – 8:00pm\n'
++'💵 Máx. 5 billetes de $1 USD\n'
++'💰 CUP: billetes de 50 en adelante\n'
++'✅ Solo billetes en buen estado';
+
+  document.getElementById('vale-body').textContent = valeTexto;
+  var w = document.getElementById('vale-wrap');
+  w.style.display = 'block';
+  setTimeout(function(){ w.scrollIntoView({ behavior:'smooth', block:'start' }); }, 100);
+}
+
+// ═══════════════════════════════════════
+//  COPIAR / WHATSAPP
+// ═══════════════════════════════════════
+function copiar() {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(valeTexto).then(function(){ toast('✅ Vale copiado'); });
+  } else {
+    var ta = document.createElement('textarea');
+    ta.value = valeTexto; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta); toast('✅ Vale copiado');
+  }
+}
+function compartirWA() {
+  window.open('https://wa.me/?text='+encodeURIComponent(valeTexto), '_blank');
+}
+
+// ═══════════════════════════════════════
+//  RESETEAR
+// ═══════════════════════════════════════
+function resetear() {
+  ['promotor','nombre','telefono','direccion','mensajeria','articulo','garantia',
+   'precioUSD','recibido','vuelto','ubicacion-manual','wa-link'].forEach(function(id){
+    var el = document.getElementById(id); if (el) el.value = '';
+  });
+  document.getElementById('wa-estado').textContent = '';
+  document.getElementById('ubic-res').style.display = 'none';
+  document.getElementById('gps-txt').textContent = 'Mi GPS';
+  carrito = []; renderCarrito(); calcular();
+  document.getElementById('vale-wrap').style.display = 'none';
+  precioCUP = 0; valeTexto = '';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  toast('↺ Listo para nuevo vale');
+}
+
+// ═══════════════════════════════════════
+//  PWA — Instalar
+// ═══════════════════════════════════════
+var deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', function(e) {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('install-banner').style.display = 'flex';
+});
+
+document.getElementById('btn-install').addEventListener('click', function() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(function(r){
+    if (r.outcome === 'accepted') toast('✅ TiendaMax instalada');
+    deferredPrompt = null;
+    cerrarInstall();
+  });
+});
+
+function cerrarInstall() {
+  document.getElementById('install-banner').style.display = 'none';
+}
+
+// Registrar Service Worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(function(){});
+}
+
+// ═══════════════════════════════════════
+//  MODO OSCURO
+// ═══════════════════════════════════════
+function toggleDark() {
+  var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  var newTheme = isDark ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', newTheme);
+  document.getElementById('btn-dark').textContent = newTheme === 'dark' ? '☀️' : '🌙';
+  try { localStorage.setItem('tm_theme', newTheme); } catch(e){}
+}
+
+// Cargar tema guardado
+(function(){
+  var saved = '';
+  try { saved = localStorage.getItem('tm_theme') || ''; } catch(e){}
+  // Si no hay preferencia guardada, detectar el sistema
+  if (!saved && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) saved = 'dark';
+  if (saved === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    var btn = document.getElementById('btn-dark');
+    if (btn) btn.textContent = '☀️';
+  }
+})();
+
+// Cerrar modal al tocar fuera
+document.getElementById('modal-tasa').addEventListener('click', function(e){
+  if (e.target === this) cerrarModal();
+});
+</script>
+</body>
+</html>
