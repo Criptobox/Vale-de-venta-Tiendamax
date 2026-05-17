@@ -1,5 +1,9 @@
-const CACHE = 'tiendamax-v1';
-const ARCHIVOS = ['/Vale-de-venta-Tiendamax/', '/Vale-de-venta-Tiendamax/manifest.json'];
+const CACHE = 'tiendamax-v2';
+const ARCHIVOS = [
+  '/Vale-de-venta-Tiendamax/',
+  '/Vale-de-venta-Tiendamax/index.html',
+  '/Vale-de-venta-Tiendamax/manifest.json'
+];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ARCHIVOS)));
@@ -15,6 +19,6 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   e.respondWith(
-    caches.match(e.request).then(cached => cached || fetch(e.request).catch(() => caches.match('/index.html')))
+    caches.match(e.request).then(cached => cached || fetch(e.request).catch(() => caches.match('/Vale-de-venta-Tiendamax/')))
   );
 });
