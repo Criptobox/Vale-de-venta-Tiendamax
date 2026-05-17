@@ -189,10 +189,14 @@ input[readonly]{background:#f0f0ec;color:var(--t2)}
   <div class="modal-box">
     <h3>✏️ Editar tasa ElToque</h3>
     <p id="modal-sub">Última: <strong id="modal-ultima"></strong> · <span id="modal-fecha"></span></p>
-    <label>Tasa ElToque (solo el número, sin el +10)</label>
+    <label>🔑 Token API ElToque <small style="color:var(--t3);font-weight:400">(opcional — para auto-actualizar)</small></label>
+    <input id="modal-token" type="text" placeholder="Pega tu token aquí" style="font-size:12px">
+    <p style="font-size:11px;color:var(--t3);margin-top:4px">Obtén tu token gratis en <strong>tasas.eltoque.com/docs</strong></p>
+    <label style="margin-top:12px">Tasa manual (solo el número, sin el +10)</label>
     <input id="modal-input" type="number" placeholder="Ej: 546" inputmode="numeric">
     <div class="modal-btns">
       <button class="mbtn" onclick="cerrarModal()">Cancelar</button>
+      <button class="mbtn" onclick="fetchTasaAPI()" style="background:#1565c0;color:#fff;border-color:#1565c0">🔄 Actualizar</button>
       <button class="mbtn ok" onclick="guardarTasa()">Guardar</button>
     </div>
   </div>
@@ -387,14 +391,18 @@ input[readonly]{background:#f0f0ec;color:var(--t2)}
 
 <script>
 // ═══════════════════════════════════════
-//  TASA — fija, editable manualmente
-//  Fuente: ElToque | 16/05/2026 = 546
+//  TASA — auto-actualizable desde ElToque API
 // ═══════════════════════════════════════
 var TASA_TOKE   = 546;
 var SOBRECARGO  = 10;
 var FECHA_TASA  = '16/05/2026';
 
 function tasaFinal() { return TASA_TOKE + SOBRECARGO; }
+
+function fechaHoy() {
+  var hoy = new Date();
+  return ('0'+hoy.getDate()).slice(-2)+'/'+('0'+(hoy.getMonth()+1)).slice(-2)+'/'+hoy.getFullYear();
+}
 
 function refrescarBanner() {
   var tf = tasaFinal();
@@ -405,34 +413,88 @@ function refrescarBanner() {
   calcular();
 }
 
+function guardarEnStorage(tasa, fecha) {
+  try { localStorage.setItem('tm_tasa', JSON.stringify({t: tasa, f: fecha})); } catch(e){}
+}
+
 function abrirModal() {
   document.getElementById('modal-ultima').textContent = TASA_TOKE + ' CUP/USD';
   document.getElementById('modal-fecha').textContent  = FECHA_TASA;
   document.getElementById('modal-input').value = TASA_TOKE;
+  try { var tk = localStorage.getItem('tm_token'); if (tk) document.getElementById('modal-token').value = tk; } catch(e){}
   document.getElementById('modal-tasa').classList.add('open');
-  setTimeout(function(){ document.getElementById('modal-input').focus(); }, 200);
 }
 function cerrarModal() { document.getElementById('modal-tasa').classList.remove('open'); }
+
 function guardarTasa() {
+  // Guardar token si fue introducido
+  var tok = (document.getElementById('modal-token').value || '').trim();
+  if (tok) { try { localStorage.setItem('tm_token', tok); } catch(e){} }
+
   var v = parseInt(document.getElementById('modal-input').value);
   if (!v || v < 100 || v > 9999) { toast('Número inválido (debe ser 100–9999)'); return; }
   TASA_TOKE  = v;
-  var hoy = new Date();
-  FECHA_TASA = ('0'+hoy.getDate()).slice(-2)+'/'+('0'+(hoy.getMonth()+1)).slice(-2)+'/'+hoy.getFullYear();
-  // Guardar en localStorage para persistir
-  try { localStorage.setItem('tm_tasa', JSON.stringify({t: TASA_TOKE, f: FECHA_TASA})); } catch(e){}
+  FECHA_TASA = fechaHoy();
+  guardarEnStorage(TASA_TOKE, FECHA_TASA);
   cerrarModal();
   refrescarBanner();
   toast('✅ Tasa actualizada: ' + TASA_TOKE + ' + ' + SOBRECARGO + ' = ' + tasaFinal() + ' CUP');
 }
 
-// Cargar tasa guardada si existe
+// ── Fetch automático desde ElToque API ──
+function fetchTasaAPI(silencioso) {
+  var token = '';
+  try { token = localStorage.getItem('tm_token') || ''; } catch(e){}
+  // Guardar token nuevo si fue escrito en el modal
+  var tokModal = document.getElementById('modal-token');
+  if (tokModal && tokModal.value.trim()) {
+    token = tokModal.value.trim();
+    try { localStorage.setItem('tm_token', token); } catch(e){}
+  }
+  if (!token) {
+    if (!silencioso) toast('⚠️ Ingresa tu token de ElToque primero');
+    return;
+  }
+  if (!silencioso) toast('⏳ Consultando ElToque...');
+  var ahora = new Date();
+  var hace24 = new Date(ahora - 24*60*60*1000);
+  function iso(d){ return d.toISOString().slice(0,19)+'Z'; }
+  fetch('https://tasas.eltoque.com/v1/trm?date_start='+iso(hace24)+'&date_end='+iso(ahora), {
+    headers: { 'Authorization': 'Bearer ' + token }
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    var usd = null;
+    if (data && data.tasas && data.tasas.USD) usd = Math.round(data.tasas.USD);
+    else if (data && data.USD) usd = Math.round(data.USD);
+    // Intentar extraer de array de ofertas
+    if (!usd && data && Array.isArray(data)) {
+      var usdOferta = data.find(function(o){ return o.moneda === 'USD' || o.currency === 'USD'; });
+      if (usdOferta) usd = Math.round(usdOferta.mediana || usdOferta.median || usdOferta.value || 0);
+    }
+    if (usd && usd >= 100) {
+      TASA_TOKE  = usd;
+      FECHA_TASA = fechaHoy();
+      guardarEnStorage(TASA_TOKE, FECHA_TASA);
+      cerrarModal();
+      refrescarBanner();
+      toast('✅ ElToque: ' + TASA_TOKE + ' CUP/USD (' + FECHA_TASA + ')');
+    } else {
+      if (!silencioso) toast('⚠️ No se pudo leer la tasa. Verifica el token.');
+    }
+  })
+  .catch(function(){ if (!silencioso) toast('❌ Sin conexión a ElToque'); });
+}
+
+// Cargar tasa guardada e intentar auto-actualizar al iniciar
 (function(){
   try {
     var s = localStorage.getItem('tm_tasa');
     if (s) { var d = JSON.parse(s); if (d.t >= 100) { TASA_TOKE = d.t; FECHA_TASA = d.f || FECHA_TASA; } }
   } catch(e){}
   refrescarBanner();
+  // Auto-fetch si hay token guardado
+  setTimeout(function(){ fetchTasaAPI(true); }, 1000);
 })();
 
 // ═══════════════════════════════════════
