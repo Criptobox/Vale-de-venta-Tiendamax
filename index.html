@@ -523,10 +523,37 @@ function toast(msg, dur) {
 var productos = [];
 var carrito   = [];
 
-fetch('https://raw.githubusercontent.com/Criptobox/Tiendamax/main/productos.json')
-  .then(function(r){ return r.ok ? r.json() : []; })
-  .then(function(d){ productos = d || []; })
-  .catch(function(){ productos = []; });
+function cargarProductos() {
+  var buscador = document.getElementById('buscador');
+  buscador.placeholder = '⏳ Cargando catálogo...';
+  buscador.disabled = true;
+
+  var url = 'https://raw.githubusercontent.com/Criptobox/Tiendamax/main/productos.json?v=' + Date.now();
+
+  fetch(url, { cache: 'no-store' })
+    .then(function(r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function(d) {
+      productos = Array.isArray(d) ? d : [];
+      buscador.disabled = false;
+      buscador.placeholder = productos.length
+        ? 'Escribe nombre o categoría… (' + productos.length + ' productos)'
+        : 'Sin productos en el catálogo';
+      if (productos.length === 0) toast('⚠️ El catálogo está vacío');
+    })
+    .catch(function(e) {
+      productos = [];
+      buscador.disabled = false;
+      buscador.placeholder = '❌ Error al cargar — toca para reintentar';
+      buscador.onclick = function() { buscador.onclick = null; cargarProductos(); };
+      toast('❌ No se pudo cargar el catálogo');
+      console.error('productos.json:', e);
+    });
+}
+
+cargarProductos();
 
 // ═══════════════════════════════════════
 //  BUSCADOR
