@@ -1,4 +1,4 @@
-const CACHE = 'tiendamax-v3';
+const CACHE = 'tiendamax-v4';
 const ARCHIVOS = [
   '/Vale-de-venta-Tiendamax/',
   '/Vale-de-venta-Tiendamax/index.html',
@@ -13,8 +13,7 @@ self.addEventListener('install', e => {
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(keys =>
     Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-  ));
-  self.clients.claim();
+  ).then(() => self.clients.claim()));
 });
 
 self.addEventListener('fetch', e => {
@@ -23,7 +22,23 @@ self.addEventListener('fetch', e => {
     e.respondWith(fetch(e.request));
     return;
   }
+
+  // Para archivos locales: network-first (siempre la versión más nueva)
   e.respondWith(
-    caches.match(e.request).then(cached => cached || fetch(e.request).catch(() => caches.match('/Vale-de-venta-Tiendamax/')))
+    fetch(e.request)
+      .then(function(res) {
+        // Guardar en cache la versión nueva
+        if (res.ok) {
+          var clone = res.clone();
+          caches.open(CACHE).then(function(c) { c.put(e.request, clone); });
+        }
+        return res;
+      })
+      .catch(function() {
+        // Si no hay red, usar cache
+        return caches.match(e.request).then(function(cached) {
+          return cached || caches.match('/Vale-de-venta-Tiendamax/');
+        });
+      })
   );
 });
