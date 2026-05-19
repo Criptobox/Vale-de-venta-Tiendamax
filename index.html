@@ -526,10 +526,9 @@ function cargarProductos() {
   var buscador = document.getElementById('buscador');
   if (buscador) { buscador.placeholder = '⏳ Cargando catálogo...'; buscador.disabled = true; }
 
-  // Probar varias URLs en orden
+  // Cargar desde archivo local (copiado del repo TiendaMax por GitHub Action)
   var urls = [
-    'https://tiendamax.org/productos.json',
-    'https://raw.githubusercontent.com/Criptobox/Tiendamax/main/productos.json'
+    'productos.json'
   ];
 
   function intentar(i) {
