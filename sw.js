@@ -1,4 +1,4 @@
-const CACHE = 'tiendamax-v4';
+const CACHE = 'tiendamax-v5';
 const ARCHIVOS = [
   '/Vale-de-venta-Tiendamax/',
   '/Vale-de-venta-Tiendamax/index.html',
@@ -11,23 +11,21 @@ self.addEventListener('install', e => {
 });
 
 self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(keys =>
-    Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-  ).then(() => self.clients.claim()));
+  e.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+    ).then(() => self.clients.claim())
+  );
 });
 
 self.addEventListener('fetch', e => {
-  // No cachear requests externos (raw.githubusercontent, tasas.eltoque, etc.)
   if (!e.request.url.startsWith(self.location.origin)) {
     e.respondWith(fetch(e.request));
     return;
   }
-
-  // Para archivos locales: network-first (siempre la versión más nueva)
   e.respondWith(
     fetch(e.request)
       .then(function(res) {
-        // Guardar en cache la versión nueva
         if (res.ok) {
           var clone = res.clone();
           caches.open(CACHE).then(function(c) { c.put(e.request, clone); });
@@ -35,7 +33,6 @@ self.addEventListener('fetch', e => {
         return res;
       })
       .catch(function() {
-        // Si no hay red, usar cache
         return caches.match(e.request).then(function(cached) {
           return cached || caches.match('/Vale-de-venta-Tiendamax/');
         });
