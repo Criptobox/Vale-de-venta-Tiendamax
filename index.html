@@ -527,25 +527,37 @@ function cargarProductos() {
   var buscador = document.getElementById('buscador');
   if (buscador) { buscador.placeholder = '⏳ Cargando catálogo...'; buscador.disabled = true; }
 
-  fetch('https://raw.githubusercontent.com/Criptobox/Tiendamax/main/productos.json')
-    .then(function(r){ return r.ok ? r.json() : Promise.reject('HTTP ' + r.status); })
-    .then(function(d) {
-      productos = Array.isArray(d) ? d : [];
-      if (buscador) {
-        buscador.disabled = false;
-        buscador.placeholder = productos.length
-          ? 'Escribe nombre o categoría… (' + productos.length + ' productos)'
-          : 'Sin productos en el catálogo';
-      }
-    })
-    .catch(function(e) {
+  // Probar varias URLs en orden
+  var urls = [
+    'https://tiendamax.org/productos.json',
+    'https://raw.githubusercontent.com/Criptobox/Tiendamax/main/productos.json'
+  ];
+
+  function intentar(i) {
+    if (i >= urls.length) {
       productos = [];
       if (buscador) {
         buscador.disabled = false;
         buscador.placeholder = '❌ Error al cargar — toca para reintentar';
         buscador.onclick = function() { buscador.onclick = null; cargarProductos(); };
       }
-    });
+      return;
+    }
+    fetch(urls[i] + '?v=' + Date.now())
+      .then(function(r) { return r.ok ? r.json() : Promise.reject('HTTP ' + r.status); })
+      .then(function(d) {
+        productos = Array.isArray(d) ? d : [];
+        if (buscador) {
+          buscador.disabled = false;
+          buscador.placeholder = productos.length
+            ? 'Escribe nombre o categoría… (' + productos.length + ' productos)'
+            : 'Sin productos en el catálogo';
+        }
+      })
+      .catch(function() { intentar(i + 1); });
+  }
+
+  intentar(0);
 }
 
 cargarProductos();
