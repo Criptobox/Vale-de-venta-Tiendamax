@@ -379,12 +379,12 @@ textarea { resize: none; min-height: 60px; line-height: 1.5; }
           </div>
           <div class="field">
             <div class="label">🔸 Mensajería</div>
-            <input type="text" id="vMensajeria" class="highlight" placeholder="Moto / precio">
+            <input type="text" id="vMensajeria" class="highlight" placeholder="Moto / 500" oninput="actualizarTotal();calcularVuelto()">
           </div>
         </div>
         <div class="field">
           <div class="label">🔸 Dirección <span class="label-auto">✓ auto</span></div>
-          <input type="text" id="vDireccion" class="auto-filled" placeholder="—" oninput="onDireccionChange()">
+          <input type="text" id="vDireccion" placeholder="—" oninput="onDireccionChange()" onchange="onDireccionChange()" style="width:100%;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;color:#f0e6d3;font-size:14px;padding:11px 14px;outline:none;font-family:'DM Sans',sans-serif">
         </div>
         <!-- BOTÓN MAPAS IA -->
         <div id="mapaBtns" style="display:none;margin-top:10px">
@@ -611,9 +611,13 @@ function onManualCUP() {
 
 function actualizarTotal() {
   const cup = parseInt(document.getElementById('vPrecioCUP').value) || 0;
-  const mens = parseInt(document.getElementById('vMensajeria').value) || 0;
+  // Extraer solo el número del campo mensajería (puede tener texto como "Moto / 500")
+  const mensRaw = document.getElementById('vMensajeria').value;
+  const mensNum = mensRaw.match(/\d+/);
+  const mens = mensNum ? parseInt(mensNum[0]) : 0;
   if (cup) {
-    document.getElementById('vTotal').textContent = cup.toLocaleString() + ' CUP';
+    const total = cup + mens;
+    document.getElementById('vTotal').textContent = total.toLocaleString() + ' CUP';
   } else {
     document.getElementById('vTotal').textContent = '—';
   }
@@ -860,7 +864,13 @@ function copiarSolicitud() {
 // ── MAPAS ──
 function onDireccionChange() {
   const dir = document.getElementById('vDireccion').value.trim();
-  document.getElementById('mapaBtns').style.display = dir ? 'block' : 'none';
+  const btns = document.getElementById('mapaBtns');
+  btns.style.display = dir.length > 3 ? 'block' : 'none';
+  // reset mapa si cambia dirección
+  if (!dir) {
+    document.getElementById('mapaResultado').style.display = 'none';
+    _coordsIA = null;
+  }
 }
 
 let _coordsIA = null;
