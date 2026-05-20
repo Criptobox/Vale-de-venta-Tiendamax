@@ -417,7 +417,7 @@ textarea { resize: none; min-height: 60px; line-height: 1.5; }
                 padding:10px;background:#1a1a2a;border:1px solid #c8a96e44;
                 border-radius:10px;color:#c8a96e;font-size:12px;font-weight:600;
                 cursor:pointer;font-family:'DM Sans',sans-serif">
-                🏛️ Ruta al Capitolio
+                🏛️ Ruta desde Capitolio
               </button>
             </div>
           </div>
@@ -883,6 +883,7 @@ async function buscarConIA() {
   const dir = document.getElementById('vDireccion').value.trim();
   if (!dir) return;
   const btn = document.getElementById('btnMapaIA');
+  const mapWindow = window.open('', '_blank');
   btn.innerHTML = '⏳ Buscando...';
   btn.disabled = true;
 
@@ -904,6 +905,9 @@ async function buscarConIA() {
       _coordsIA = { lat: parseFloat(r.lat), lng: parseFloat(r.lon), nombre: r.display_name.split(',')[0] };
       mostrarResultadoMapa();
       btn.innerHTML = '✅ ' + _coordsIA.nombre;
+      btn.disabled = false;
+      const rutaUrl = getRutaCapitolioUrl();
+      if (mapWindow && rutaUrl) mapWindow.location.href = rutaUrl;
       return;
     }
   } catch(e) {}
@@ -923,6 +927,9 @@ async function buscarConIA() {
       _coordsIA = { lat: parseFloat(r.lat), lng: parseFloat(r.lon), nombre: r.display_name.split(',')[0] };
       mostrarResultadoMapa();
       btn.innerHTML = '✅ ' + _coordsIA.nombre;
+      btn.disabled = false;
+      const rutaUrl = getRutaCapitolioUrl();
+      if (mapWindow && rutaUrl) mapWindow.location.href = rutaUrl;
       return;
     }
   } catch(e) {}
@@ -932,7 +939,12 @@ async function buscarConIA() {
   btn.disabled = false;
   btn.onclick = () => {
     const q = encodeURIComponent(dir + ', La Habana, Cuba');
-    window.open('https://www.google.com/maps/search/' + q, '_blank');
+    const searchUrl = 'https://www.google.com/maps/search/?api=1&query=' + q;
+    if (mapWindow && !mapWindow.closed) {
+      mapWindow.location.href = searchUrl;
+    } else {
+      window.open(searchUrl, '_blank');
+    }
     btn.innerHTML = '🤖 Buscar ubicación con IA';
     btn.onclick = buscarConIA;
   };
@@ -961,12 +973,18 @@ function mostrarResultadoMapa() {
 
 function abrirEnGoogleMaps() {
   if (!_coordsIA) return;
-  window.open('https://www.google.com/maps?q=' + _coordsIA.lat + ',' + _coordsIA.lng, '_blank');
+  const url = 'https://www.google.com/maps/search/?api=1&query=' + _coordsIA.lat + ',' + _coordsIA.lng;
+  window.open(url, '_blank');
+}
+
+function getRutaCapitolioUrl() {
+  if (!_coordsIA) return '';
+  return 'https://www.google.com/maps/dir/?api=1&origin=' + CAPITOLIO.lat + ',' + CAPITOLIO.lng + '&destination=' + _coordsIA.lat + ',' + _coordsIA.lng + '&travelmode=driving';
 }
 
 function abrirRutaCapitolio() {
-  if (!_coordsIA) return;
-  const url = 'https://www.google.com/maps/dir/' + _coordsIA.lat + ',' + _coordsIA.lng + '/' + CAPITOLIO.lat + ',' + CAPITOLIO.lng;
+  const url = getRutaCapitolioUrl();
+  if (!url) return;
   window.open(url, '_blank');
 }
 
@@ -1040,5 +1058,6 @@ pa.addEventListener('focus', () => { if (!pa.innerText.trim()) pa.innerText = ''
 renderTasa();
 if (!tasa) setTimeout(() => abrirModalTasa(), 800);
 </script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
 </html>
