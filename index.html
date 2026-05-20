@@ -867,9 +867,12 @@ function abrirGoogleMaps() {
 function abrirMapsMe() {
   const dir = document.getElementById('vDireccion').value.trim();
   const destino = dir + ', La Habana, Cuba';
-  // Maps.me deep link correcto
-  const appUrl = `mapswithme://search?query=${encodeURIComponent(destino)}`;
-  window.location = appUrl;
+  const a = document.createElement('a');
+  a.href = `mapswithme://search?query=${encodeURIComponent(destino)}`;
+  a.rel = 'noopener';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 }
 
 // ── RESET ──
