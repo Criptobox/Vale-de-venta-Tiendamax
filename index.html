@@ -384,8 +384,34 @@ textarea { resize: none; min-height: 60px; line-height: 1.5; }
         </div>
         <div class="field">
           <div class="label">🔸 Dirección <span class="label-auto">✓ auto</span></div>
-          <input type="text" id="vDireccion" class="auto-filled" placeholder="—">
+          <input type="text" id="vDireccion" class="auto-filled" placeholder="—" oninput="onDireccionChange()">
         </div>
+        <!-- BOTÓN MAPAS -->
+        <div id="mapaBtns" style="display:none;margin-top:10px">
+          <div style="font-size:10px;color:#555;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">🗺️ Abrir ruta desde</div>
+          <div style="display:flex;align-items:center;gap-6px;margin-bottom:8px;gap:6px">
+            <input type="text" id="puntoSalida" value="Capitolio, La Habana, Cuba"
+              style="flex:1;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;color:#f0e6d3;font-size:12px;padding:8px 10px;outline:none;font-family:'DM Sans',sans-serif"
+              placeholder="Punto de salida">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <button onclick="abrirGoogleMaps()" style="
+              padding:10px;background:#1a2a1a;border:1px solid #2d4a2d;
+              border-radius:10px;color:#7ecb7e;font-size:12px;font-weight:600;
+              cursor:pointer;font-family:'DM Sans',sans-serif;
+              display:flex;align-items:center;justify-content:center;gap:6px">
+              🗺️ Google Maps
+            </button>
+            <button onclick="abrirMapsMe()" style="
+              padding:10px;background:#1a1a2a;border:1px solid #2d2d4a;
+              border-radius:10px;color:#7e9ecb;font-size:12px;font-weight:600;
+              cursor:pointer;font-family:'DM Sans',sans-serif;
+              display:flex;align-items:center;justify-content:center;gap:6px">
+              📍 Maps.me
+            </button>
+          </div>
+        </div>
+
         <!-- BOTÓN SOLICITAR DATOS -->
         <button onclick="copiarSolicitud()" style="
           width:100%;margin-top:12px;padding:12px;
@@ -683,7 +709,7 @@ function extraerDatos() {
 
   if (ex.cliente) setVal('vCliente', ex.cliente);
   if (ex.telefono) setVal('vTelefono', ex.telefono);
-  if (ex.direccion) setVal('vDireccion', ex.direccion);
+  if (ex.direccion) { setVal('vDireccion', ex.direccion); onDireccionChange(); }
   if (ex.articulo) setVal('vArticulo', ex.articulo);
   // Para múltiples productos usar el Total
   const totalMatch = document.getElementById('pasteArea').innerText.match(/Total[:\s]*\$([\d.]+)\s*USD/i);
@@ -819,6 +845,32 @@ function copiarSolicitud() {
   copiarTexto(texto, '✅ Copiado — pégalo en WhatsApp');
 }
 
+// ── MAPAS ──
+function onDireccionChange() {
+  const dir = document.getElementById('vDireccion').value.trim();
+  document.getElementById('mapaBtns').style.display = dir ? 'block' : 'none';
+}
+
+function buildQuery() {
+  const dir = document.getElementById('vDireccion').value.trim();
+  const salida = document.getElementById('puntoSalida').value.trim() || 'Capitolio, La Habana, Cuba';
+  const destino = dir + ', La Habana, Cuba';
+  return { salida, destino };
+}
+
+function abrirGoogleMaps() {
+  const { salida, destino } = buildQuery();
+  const url = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(salida)}&destination=${encodeURIComponent(destino)}&travelmode=driving`;
+  window.open(url, '_blank');
+}
+
+function abrirMapsMe() {
+  const { salida, destino } = buildQuery();
+  // Maps.me deep link con destino
+  const url = `https://maps.me/open?ll=${encodeURIComponent(destino)}&n=${encodeURIComponent(destino)}`;
+  window.open(url, '_blank');
+}
+
 // ── RESET ──
 function resetForm() {
   ['vCliente','vTelefono','vDireccion','vMensajeria','vArticulo','vGarantia','vPrecioUSD','vPrecioCUP','vRecibido','vVuelto'].forEach(id => {
@@ -832,6 +884,7 @@ function resetForm() {
   document.getElementById('parseBtn').classList.remove('ready');
   document.getElementById('ubiLink').style.display = 'none';
   document.getElementById('ubiBtnPaste').style.display = 'flex';
+  document.getElementById('mapaBtns').style.display = 'none';
   window._ubicacion = null;
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
