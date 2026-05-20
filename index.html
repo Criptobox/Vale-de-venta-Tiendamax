@@ -388,12 +388,12 @@ textarea { resize: none; min-height: 60px; line-height: 1.5; }
         </div>
         <!-- BOTÓN MAPAS IA -->
         <div id="mapaBtns" style="display:none;margin-top:10px">
-          <button onclick="buscarConIA()" id="btnMapaIA" style="
+          <button onclick="copiarDireccion()" id="btnMapaIA" style="
             width:100%;padding:11px;background:#1a1a2a;border:1px solid #c8a96e44;
             border-radius:10px;color:#c8a96e;font-size:13px;font-weight:600;
             cursor:pointer;font-family:'DM Sans',sans-serif;
             display:flex;align-items:center;justify-content:center;gap:8px">
-            🤖 Buscar ubicación con IA
+            📋 Copiar dirección para Maps.me
           </button>
           <!-- Mapa resultado -->
           <div id="mapaResultado" style="display:none;margin-top:10px">
@@ -594,12 +594,8 @@ function calcular() {
   const usd = parseFloat(document.getElementById('vPrecioUSD').value) || 0;
   if (usd && tasa) {
     const cup = Math.round(usd * (tasa + 10));
-    // Siempre llena el CUP automáticamente
-    document.getElementById('precioCalculado').textContent = cup.toLocaleString();
     document.getElementById('vPrecioCUP').value = cup;
     actualizarTotal();
-  } else {
-    document.getElementById('precioCalculado').textContent = '—';
   }
   calcularVuelto();
 }
@@ -856,7 +852,7 @@ function copiarSolicitud() {
     }
   }
 
-  const texto = 'Para completar tu pedido necesito estos datos:' + productosLineas + '\n\n👤 Nombre completo:\n📞 Teléfono:\n📍 Dirección de entrega:\n💵 ¿Pagas en USD/Zelle o en CUP?\n🔄 ¿Necesitas vuelto?\n🛵 ¿Necesitas mensajería o recoges tú?';
+  const texto = 'Para completar tu pedido necesito estos datos:' + productosLineas + '\n\n👤 Nombre completo:\n📞 Teléfono:\n📍 Dirección de entrega:\n📌 Comparte tu ubicación de WhatsApp\n💵 ¿Pagas en USD/Zelle o en CUP?\n🔄 ¿Necesitas vuelto?\n🛵 ¿Necesitas mensajería o recoges tú?';
 
   copiarTexto(texto, '✅ Copiado — pégalo en WhatsApp');
 }
@@ -889,49 +885,13 @@ function calcularDistanciaKm(lat1, lng1, lat2, lng2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
-async function buscarConIA() {
+function copiarDireccion() {
   const dir = document.getElementById('vDireccion').value.trim();
   if (!dir) return;
   const btn = document.getElementById('btnMapaIA');
-  btn.innerHTML = '⏳ Buscando...';
-  btn.disabled = true;
-
-  try {
-    // Nominatim OpenStreetMap - gratis, sin API key
-    const query = encodeURIComponent(dir + ', La Habana, Cuba');
-    const url = 'https://nominatim.openstreetmap.org/search?q=' + query + '&format=json&limit=1&countrycodes=cu&accept-language=es';
-    const res = await fetch(url);
-    const data = await res.json();
-
-    if (data && data.length > 0) {
-      const lat = parseFloat(data[0].lat);
-      const lng = parseFloat(data[0].lon);
-      const nombre = data[0].display_name.split(',')[0];
-      _coordsIA = { lat, lng, nombre };
-      mostrarResultadoMapa();
-      btn.innerHTML = '✅ ' + nombre;
-    } else {
-      // Segundo intento con solo municipio
-      const municipios = ['Habana Vieja','Centro Habana','Vedado','Miramar','Playa','Plaza','10 de Octubre','Cerro','Marianao','Boyeros','Cotorro','San Miguel','Guanabacoa','Regla','Arroyo Naranjo','La Lisa'];
-      let municipio = municipios.find(m => dir.toLowerCase().includes(m.toLowerCase()));
-      if (municipio) {
-        const q2 = encodeURIComponent(municipio + ', La Habana, Cuba');
-        const r2 = await fetch('https://nominatim.openstreetmap.org/search?q=' + q2 + '&format=json&limit=1&countrycodes=cu');
-        const d2 = await r2.json();
-        if (d2 && d2.length > 0) {
-          const lat = parseFloat(d2[0].lat);
-          const lng = parseFloat(d2[0].lon);
-          _coordsIA = { lat, lng, nombre: municipio };
-          mostrarResultadoMapa();
-          btn.innerHTML = '⚠️ Zona: ' + municipio;
-        } else throw new Error('not found');
-      } else throw new Error('not found');
-    }
-  } catch(e) {
-    btn.innerHTML = '⚠️ No encontrado';
-    btn.disabled = false;
-  }
-  btn.disabled = false;
+  copiarTexto(dir + ', La Habana, Cuba', '📋 Dirección copiada — pégala en Maps.me');
+  btn.innerHTML = '✅ Copiado — abre Maps.me y pega';
+  setTimeout(() => { btn.innerHTML = '📋 Copiar dirección para Maps.me'; }, 3000);
 }
   } catch(e) {
     btn.innerHTML = '⚠️ No encontrado — edita la dirección';
@@ -993,7 +953,7 @@ function resetForm() {
     document.getElementById(id).classList.remove('auto-filled');
   });
   document.getElementById('vTotal').textContent = '—';
-  document.getElementById('precioCalculado').textContent = '—';
+  // precioCalculado removed
   document.getElementById('pasteArea').innerText = '';
   document.getElementById('chips').innerHTML = '';
   document.getElementById('parseBtn').classList.remove('ready');
