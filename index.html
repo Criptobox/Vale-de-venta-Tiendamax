@@ -399,7 +399,7 @@ textarea { resize: none; min-height: 60px; line-height: 1.5; }
             border-radius:10px;color:#7ecb7e;font-size:13px;font-weight:600;
             cursor:pointer;font-family:'DM Sans',sans-serif;
             display:flex;align-items:center;justify-content:center;gap:8px">
-            🗺️ Ver ruta en Google Maps
+            📍 Copiar dirección y abrir Maps.me
           </button>
         </div>
 
@@ -851,15 +851,17 @@ function buildQuery() {
 
 function abrirGoogleMaps() {
   const dir = document.getElementById('vDireccion').value.trim();
-  const salida = document.getElementById('puntoSalida').value.trim() || 'Capitolio, La Habana, Cuba';
-  const destino = dir + ', La Habana, Cuba';
-  // Intent Android para abrir Google Maps app directamente
-  const intent = 'intent://maps.google.com/maps?saddr=' + encodeURIComponent(salida) + '&daddr=' + encodeURIComponent(destino) + '#Intent;scheme=https;package=com.google.android.apps.maps;action=android.intent.action.VIEW;end';
-  const a = document.createElement('a');
-  a.href = intent;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  if (!dir) return;
+  // Copiar dirección y abrir Maps.me
+  copiarTexto(dir, '📍 Dirección copiada — pégala en Maps.me');
+  setTimeout(() => {
+    const intent = 'intent://#Intent;scheme=mapsme;package=com.mapswithme.maps.pro;action=android.intent.action.VIEW;end';
+    const a = document.createElement('a');
+    a.href = intent;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }, 800);
 }
 
 // ── RESET ──
