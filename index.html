@@ -883,78 +883,61 @@ async function buscarConIA() {
   const dir = document.getElementById('vDireccion').value.trim();
   if (!dir) return;
   const btn = document.getElementById('btnMapaIA');
-  const mapWindow = window.open('', '_blank');
   btn.innerHTML = '⏳ Buscando...';
   btn.disabled = true;
 
-  // Intentar con Nominatim (OpenStreetMap) — gratuito, sin API key, funciona desde el navegador
   try {
+    // Nominatim OpenStreetMap - gratis, sin API key
     const query = encodeURIComponent(dir + ', La Habana, Cuba');
-    const url = 'https://nominatim.openstreetmap.org/search?q=' + query + '&format=json&limit=3&countrycodes=cu&accept-language=es';
-    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+    const url = 'https://nominatim.openstreetmap.org/search?q=' + query + '&format=json&limit=1&countrycodes=cu&accept-language=es';
+    const res = await fetch(url);
     const data = await res.json();
 
-    // Filtrar resultados dentro de Cuba (lat ~19-23, lng ~-85 a -74)
-    const validos = data.filter(r => {
-      const lat = parseFloat(r.lat), lng = parseFloat(r.lon);
-      return lat > 19 && lat < 24 && lng > -85 && lng < -74;
-    });
-
-    if (validos.length > 0) {
-      const r = validos[0];
-      _coordsIA = { lat: parseFloat(r.lat), lng: parseFloat(r.lon), nombre: r.display_name.split(',')[0] };
+    if (data && data.length > 0) {
+      const lat = parseFloat(data[0].lat);
+      const lng = parseFloat(data[0].lon);
+      const nombre = data[0].display_name.split(',')[0];
+      _coordsIA = { lat, lng, nombre };
       mostrarResultadoMapa();
-      btn.innerHTML = '✅ ' + _coordsIA.nombre;
-      btn.disabled = false;
-      const rutaUrl = getRutaCapitolioUrl();
-      if (mapWindow && rutaUrl) mapWindow.location.href = rutaUrl;
-      return;
-    }
-  } catch(e) {}
-
-  // Si Nominatim falla, intentar búsqueda más amplia sin countrycodes
-  try {
-    const query2 = encodeURIComponent(dir + ' La Habana Cuba');
-    const url2 = 'https://nominatim.openstreetmap.org/search?q=' + query2 + '&format=json&limit=5&accept-language=es';
-    const res2 = await fetch(url2, { headers: { 'Accept': 'application/json' } });
-    const data2 = await res2.json();
-    const validos2 = data2.filter(r => {
-      const lat = parseFloat(r.lat), lng = parseFloat(r.lon);
-      return lat > 19 && lat < 24 && lng > -85 && lng < -74;
-    });
-    if (validos2.length > 0) {
-      const r = validos2[0];
-      _coordsIA = { lat: parseFloat(r.lat), lng: parseFloat(r.lon), nombre: r.display_name.split(',')[0] };
-      mostrarResultadoMapa();
-      btn.innerHTML = '✅ ' + _coordsIA.nombre;
-      btn.disabled = false;
-      const rutaUrl = getRutaCapitolioUrl();
-      if (mapWindow && rutaUrl) mapWindow.location.href = rutaUrl;
-      return;
-    }
-  } catch(e) {}
-
-  // Último recurso: abrir en Google Maps para que el usuario confirme
-  btn.innerHTML = '⚠️ No encontrado — toca para abrir Maps';
-  btn.disabled = false;
-  btn.onclick = () => {
-    const q = encodeURIComponent(dir + ', La Habana, Cuba');
-    const searchUrl = 'https://www.google.com/maps/search/?api=1&query=' + q;
-    if (mapWindow && !mapWindow.closed) {
-      mapWindow.location.href = searchUrl;
+      btn.innerHTML = '✅ ' + nombre;
     } else {
-      window.open(searchUrl, '_blank');
+      // Segundo intento con solo municipio
+      const municipios = ['Habana Vieja','Centro Habana','Vedado','Miramar','Playa','Plaza','10 de Octubre','Cerro','Marianao','Boyeros','Cotorro','San Miguel','Guanabacoa','Regla','Arroyo Naranjo','La Lisa'];
+      let municipio = municipios.find(m => dir.toLowerCase().includes(m.toLowerCase()));
+      if (municipio) {
+        const q2 = encodeURIComponent(municipio + ', La Habana, Cuba');
+        const r2 = await fetch('https://nominatim.openstreetmap.org/search?q=' + q2 + '&format=json&limit=1&countrycodes=cu');
+        const d2 = await r2.json();
+        if (d2 && d2.length > 0) {
+          const lat = parseFloat(d2[0].lat);
+          const lng = parseFloat(d2[0].lon);
+          _coordsIA = { lat, lng, nombre: municipio };
+          mostrarResultadoMapa();
+          btn.innerHTML = '⚠️ Zona: ' + municipio;
+        } else throw new Error('not found');
+      } else throw new Error('not found');
     }
-    btn.innerHTML = '🤖 Buscar ubicación con IA';
-    btn.onclick = buscarConIA;
-  };
+  } catch(e) {
+    btn.innerHTML = '⚠️ No encontrado';
+    btn.disabled = false;
+  }
+  btn.disabled = false;
+}
+  } catch(e) {
+    btn.innerHTML = '⚠️ No encontrado — edita la dirección';
+    btn.disabled = false;
+  }
 }
 
 function mostrarResultadoMapa() {
   const coords = _coordsIA;
   // Mapa embed
-  const mapUrl = 'https://maps.google.com/maps?q=' + coords.lat + ',' + coords.lng + '&z=16&output=embed';
-  document.getElementById('mapaIframe').innerHTML = '<iframe src="' + mapUrl + '" width="100%" height="220" frameborder="0" style="border:0" allowfullscreen></iframe>';
+  // OpenStreetMap embed con pin marcado
+  const mapUrl = 'https://www.openstreetmap.org/export/embed.html?bbox=' +
+    (coords.lng-0.006) + '%2C' + (coords.lat-0.006) + '%2C' +
+    (coords.lng+0.006) + '%2C' + (coords.lat+0.006) +
+    '&layer=mapnik&marker=' + coords.lat + '%2C' + coords.lng;
+  document.getElementById('mapaIframe').innerHTML = '<iframe src="' + mapUrl + '" width="100%" height="240" frameborder="0" style="border:0;border-radius:12px" allowfullscreen></iframe>';
   document.getElementById('mapaResultado').style.display = 'block';
 
   // Calcular distancia al Capitolio
