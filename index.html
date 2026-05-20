@@ -860,16 +860,17 @@ function buildQuery() {
 
 function abrirGoogleMaps() {
   const { salida, destino } = buildQuery();
-  const url = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(salida)}&destination=${encodeURIComponent(destino)}&travelmode=driving`;
+  const url = 'https://www.google.com/maps/dir/?api=1&origin=' + encodeURIComponent(salida) + '&destination=' + encodeURIComponent(destino) + '&travelmode=driving';
   window.open(url, '_blank');
 }
 
 function abrirMapsMe() {
   const dir = document.getElementById('vDireccion').value.trim();
   const destino = dir + ', La Habana, Cuba';
+  // Buscar destino en Maps.me via intent de Android
+  const intent = 'intent://search?query=' + encodeURIComponent(destino) + '#Intent;scheme=mapswithme;package=com.mapswithme.maps.pro;end';
   const a = document.createElement('a');
-  a.href = `mapswithme://search?query=${encodeURIComponent(destino)}`;
-  a.rel = 'noopener';
+  a.href = intent;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
