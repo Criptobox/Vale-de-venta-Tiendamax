@@ -411,7 +411,7 @@ textarea { resize: none; min-height: 60px; line-height: 1.5; }
                 padding:10px;background:#1a2a1a;border:1px solid #2d4a2d;
                 border-radius:10px;color:#7ecb7e;font-size:12px;font-weight:600;
                 cursor:pointer;font-family:'DM Sans',sans-serif">
-                🗺️ Ver en Google Maps
+                🗺️ Ver en Maps
               </button>
               <button id="btnRuta" onclick="abrirRutaCapitolio()" style="
                 padding:10px;background:#1a1a2a;border:1px solid #c8a96e44;
@@ -868,7 +868,7 @@ let _coordsIA = null;
 // Coordenadas fijas del Capitolio Nacional de La Habana
 const CAPITOLIO = { lat: 23.13572, lng: -82.35897, nombre: 'Capitolio Nacional, La Habana' };
 
-// Calcula distancia en línea recta entre dos puntos GPS (fórmula Haversine)
+// Calcula distancia en línea recta (Haversine)
 function calcularDistanciaKm(lat1, lng1, lat2, lng2) {
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -883,55 +883,80 @@ async function buscarConIA() {
   const dir = document.getElementById('vDireccion').value.trim();
   if (!dir) return;
   const btn = document.getElementById('btnMapaIA');
-  btn.innerHTML = '⏳ Buscando con IA...';
+  btn.innerHTML = '⏳ Buscando...';
   btn.disabled = true;
 
+  // Intentar con Nominatim (OpenStreetMap) — gratuito, sin API key, funciona desde el navegador
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 200,
-        messages: [{
-          role: 'user',
-          content: 'Dame las coordenadas GPS (latitud y longitud) de esta dirección en La Habana, Cuba: "' + dir + '". Responde SOLO con JSON así: {"lat": 23.1234, "lng": -82.1234, "nombre": "descripción corta del lugar"}. Sin texto extra, sin markdown.'
-        }]
-      })
+    const query = encodeURIComponent(dir + ', La Habana, Cuba');
+    const url = 'https://nominatim.openstreetmap.org/search?q=' + query + '&format=json&limit=3&countrycodes=cu&accept-language=es';
+    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+    const data = await res.json();
+
+    // Filtrar resultados dentro de Cuba (lat ~19-23, lng ~-85 a -74)
+    const validos = data.filter(r => {
+      const lat = parseFloat(r.lat), lng = parseFloat(r.lon);
+      return lat > 19 && lat < 24 && lng > -85 && lng < -74;
     });
-    const data = await response.json();
-    const texto = data.content[0].text.trim();
-    const coords = JSON.parse(texto.replace(/```json|```/g,'').trim());
-    _coordsIA = coords;
 
-    // Mostrar mapa embed centrado en el cliente
-    const mapUrl = 'https://maps.google.com/maps?q=' + coords.lat + ',' + coords.lng + '&z=16&output=embed';
-    document.getElementById('mapaIframe').innerHTML = '<iframe src="' + mapUrl + '" width="100%" height="220" frameborder="0" style="border:0" allowfullscreen></iframe>';
-    document.getElementById('mapaResultado').style.display = 'block';
+    if (validos.length > 0) {
+      const r = validos[0];
+      _coordsIA = { lat: parseFloat(r.lat), lng: parseFloat(r.lon), nombre: r.display_name.split(',')[0] };
+      mostrarResultadoMapa();
+      btn.innerHTML = '✅ ' + _coordsIA.nombre;
+      return;
+    }
+  } catch(e) {}
 
-    // Calcular distancia al Capitolio
-    const distKm = calcularDistanciaKm(coords.lat, coords.lng, CAPITOLIO.lat, CAPITOLIO.lng);
-    const distTexto = distKm < 1
-      ? Math.round(distKm * 1000) + ' m del Capitolio'
-      : distKm.toFixed(1) + ' km del Capitolio';
-    // Tiempo estimado a moto (~25 km/h en La Habana)
-    const minutos = Math.round((distKm / 25) * 60);
-    const tiempoTexto = minutos < 60
-      ? '~' + minutos + ' min en moto'
-      : '~' + Math.round(minutos/60) + 'h ' + (minutos%60) + 'min en moto';
+  // Si Nominatim falla, intentar búsqueda más amplia sin countrycodes
+  try {
+    const query2 = encodeURIComponent(dir + ' La Habana Cuba');
+    const url2 = 'https://nominatim.openstreetmap.org/search?q=' + query2 + '&format=json&limit=5&accept-language=es';
+    const res2 = await fetch(url2, { headers: { 'Accept': 'application/json' } });
+    const data2 = await res2.json();
+    const validos2 = data2.filter(r => {
+      const lat = parseFloat(r.lat), lng = parseFloat(r.lon);
+      return lat > 19 && lat < 24 && lng > -85 && lng < -74;
+    });
+    if (validos2.length > 0) {
+      const r = validos2[0];
+      _coordsIA = { lat: parseFloat(r.lat), lng: parseFloat(r.lon), nombre: r.display_name.split(',')[0] };
+      mostrarResultadoMapa();
+      btn.innerHTML = '✅ ' + _coordsIA.nombre;
+      return;
+    }
+  } catch(e) {}
 
-    document.getElementById('distanciaVal').textContent = distTexto;
-    document.getElementById('tiempoVal').textContent = tiempoTexto;
-    document.getElementById('distanciaBox').style.display = 'block';
+  // Último recurso: abrir en Google Maps para que el usuario confirme
+  btn.innerHTML = '⚠️ No encontrado — toca para abrir Maps';
+  btn.disabled = false;
+  btn.onclick = () => {
+    const q = encodeURIComponent(dir + ', La Habana, Cuba');
+    window.open('https://www.google.com/maps/search/' + q, '_blank');
+    btn.innerHTML = '🤖 Buscar ubicación con IA';
+    btn.onclick = buscarConIA;
+  };
+}
 
-    // Guardar en variable global para el vale
-    window._distanciaInfo = distTexto + ' · ' + tiempoTexto;
+function mostrarResultadoMapa() {
+  const coords = _coordsIA;
+  // Mapa embed
+  const mapUrl = 'https://maps.google.com/maps?q=' + coords.lat + ',' + coords.lng + '&z=16&output=embed';
+  document.getElementById('mapaIframe').innerHTML = '<iframe src="' + mapUrl + '" width="100%" height="220" frameborder="0" style="border:0" allowfullscreen></iframe>';
+  document.getElementById('mapaResultado').style.display = 'block';
 
-    btn.innerHTML = '✅ ' + coords.nombre;
-  } catch(e) {
-    btn.innerHTML = '⚠️ No se encontró — edita la dirección';
-    btn.disabled = false;
-  }
+  // Calcular distancia al Capitolio
+  const distKm = calcularDistanciaKm(coords.lat, coords.lng, CAPITOLIO.lat, CAPITOLIO.lng);
+  const distTexto = distKm < 1
+    ? Math.round(distKm * 1000) + ' m del Capitolio'
+    : distKm.toFixed(1) + ' km del Capitolio';
+  const minutos = Math.round((distKm / 25) * 60);
+  const tiempoTexto = minutos < 60 ? '~' + minutos + ' min en moto' : '~' + Math.floor(minutos/60) + 'h ' + (minutos%60) + 'min en moto';
+
+  document.getElementById('distanciaVal').textContent = distTexto;
+  document.getElementById('tiempoVal').textContent = tiempoTexto;
+  document.getElementById('distanciaBox').style.display = 'block';
+  window._distanciaInfo = distTexto + ' · ' + tiempoTexto;
 }
 
 function abrirEnGoogleMaps() {
@@ -941,7 +966,6 @@ function abrirEnGoogleMaps() {
 
 function abrirRutaCapitolio() {
   if (!_coordsIA) return;
-  // Ruta desde el cliente hasta el Capitolio Nacional
   const url = 'https://www.google.com/maps/dir/' + _coordsIA.lat + ',' + _coordsIA.lng + '/' + CAPITOLIO.lat + ',' + CAPITOLIO.lng;
   window.open(url, '_blank');
 }
@@ -967,9 +991,8 @@ function resetForm() {
   document.getElementById('mapaBtns').style.display = 'none';
   window._ubicacion = null;
   window._distanciaInfo = null;
-  document.getElementById('distanciaBox').style.display = 'none';
-  document.getElementById('distanciaVal').textContent = '—';
-  document.getElementById('tiempoVal').textContent = '';
+  const db = document.getElementById('distanciaBox');
+  if (db) { db.style.display = 'none'; document.getElementById('distanciaVal').textContent = '—'; document.getElementById('tiempoVal').textContent = ''; }
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
