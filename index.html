@@ -126,7 +126,8 @@ hr{border:none;border-top:1px solid var(--border);margin:12px 0}
       <div id="mapaBtns" style="display:none">
         <button class="btn-act" onclick="copiarDir()">📋 Copiar dirección para Maps.me</button>
       </div>
-      <button class="btn-act" onclick="copiarSolicitud()">📋 Copiar solicitud de datos al cliente</button>
+      <button class="btn-act" onclick="enviarFormulario()">📲 Enviar formulario al cliente</button>
+      <button class="btn-act" style="margin-top:6px;color:var(--muted);border-color:var(--border)" onclick="copiarSolicitud()">📋 Copiar solicitud manual</button>
       <div class="lbl" style="margin-top:12px">📍 Ubicación WhatsApp</div>
       <button class="ubi-btn" id="ubiBtnPaste" onclick="pegarUbi()">📌 Pegar enlace de ubicación</button>
       <a id="ubiLink" class="ubi-link" style="display:none" href="#" target="_blank" rel="noopener">📍 <span id="ubiTxt"></span></a>
@@ -247,7 +248,51 @@ function renderChips(text){
   document.getElementById('chips').innerHTML=h;
 }
 function extract(text){
-  const r={cliente:'',telefono:'',direccion:'',articulo:'',precio:''};
+  const r={cliente:'',telefono:'',direccion:'',articulo:'',precio:'',mensajeria:''};
+
+  // ── Formato vale con 🔸 ──
+  const esVale = text.includes('🔸');
+  if(esVale){
+    const get = (key) => {
+      const m = text.match(new RegExp('🔸[^:\n]*'+key+'[^:\n]*:\s*(.+?)(?=\n|$)','i'));
+      return m ? m[1].trim() : '';
+    };
+    r.cliente   = get('Nombre') || get('Cliente');
+    r.telefono  = get('Tel') || get('Tlf') || get('Teléfono');
+    r.direccion = get('Direcci');
+    r.articulo  = get('Art') || get('cantidad');
+    r.mensajeria= get('Mensaj');
+    // Precio USD
+    const pu = text.match(/🔸[^
+]*(?:USD|Zelle)[^
+]*:\s*(\d+[\d.,]*)\s*(?:USD)?/i);
+    if(pu) r.precio = pu[1].replace(',','.');
+    return r;
+  }
+
+  // ── Formato formulario pedido ──
+  if(text.includes('✅ Nuevo pedido')){
+    const gf = (emoji) => {
+      const m = text.match(new RegExp(emoji+'[^:]*:\s*(.+?)(?=\n|$)'));
+      return m ? m[1].trim() : '';
+    };
+    r.cliente   = gf('👤');
+    r.telefono  = gf('📞');
+    r.articulo  = gf('📦');
+    r.mensajeria= text.includes('Mensajer') ? gf('🛵').replace('Mensajería a: ','') : 'Recoge en tienda';
+    if(r.mensajeria.includes('Mensajer')) {
+      const dm = r.mensajeria.match(/Mensajer[íi]a a: (.+)/i);
+      if(dm) r.direccion = dm[1]; r.mensajeria = 'Mensajería';
+    } else if(r.mensajeria !== 'Recoge en tienda') {
+      r.direccion = r.mensajeria; r.mensajeria = 'Mensajería';
+    }
+    const pm = text.match(/📦[^:]*:\s*(.+?)\s*—\s*\$([ \d.]+)\s*USD/);
+    if(pm){ r.articulo=pm[1].trim(); r.precio=pm[2].trim(); }
+    return r;
+  }
+
+  // ── Formato libre del cliente ──
+  // Nombre con keywords
   const nk=text.match(/(?:soy|me llamo)\s*([A-ZÁÉÍÓÚa-záéíóúñÑ][A-ZÁÉÍÓÚa-záéíóúñÑ\s]{2,28}?)(?=,|\.|$|\d|\n)/i);
   if(nk){r.cliente=nk[1].trim();}
   else{
@@ -255,21 +300,25 @@ function extract(text){
       if(/^[A-ZÁÉÍÓÚa-záéíóúñÑ][A-ZÁÉÍÓÚa-záéíóúñÑ\s]{2,30}$/.test(l)){r.cliente=l;break;}
     }
   }
-  const tel=text.match(/(\+?5?\d{7,11})/);
+  // Teléfono
+  const tel=text.match(/(\+?5?[3-9]\d{7,10})/);
   if(tel) r.telefono=tel[1].trim();
+  // Dirección
   const dk=text.match(/(?:dirección|direccion|vivo en|dir)[:\-]?\s*(.+?)(?:\n|$)/i);
   if(dk){r.direccion=dk[1].trim();}
   else{
     for(const l of text.split('\n').map(l=>l.trim()).filter(Boolean)){
-      if(/#|[Cc]alle|[Aa]venida|[Rr]eparto|[Ee]squina|[Ee]dif|[Aa]pto/.test(l)){r.direccion=l;break;}
+      if(/#|[Cc]alle|[Cc]alzada|[Aa]venida|[Rr]eparto|[Ee]squina|[Ee]dif|[Aa]pto/.test(l)){r.direccion=l;break;}
     }
   }
+  // Productos 📦
   const prods=[...text.matchAll(/📦\s*(.+?)(?=\n|$)/g)].map(m=>m[1].trim());
   if(prods.length>0){r.articulo=prods.join('\n');}
   else{
     const p2=text.match(/(?:quiero|pedir|llevar)\s+(?:el|la|un|una)?\s*(.+?)(?:\.|,|\?|\n|$)/i);
     if(p2) r.articulo=p2[1].trim();
   }
+  // Precio
   const tot=text.match(/Total[:\s]*\$?([\d.]+)\s*USD/i);
   if(tot){r.precio=tot[1];}
   else{
@@ -288,6 +337,7 @@ function extraer(){
   if(ex.direccion){setA('vDireccion',ex.direccion);chkMapa();}
   if(ex.articulo) setA('vArticulo',ex.articulo);
   if(ex.precio){setA('vUSD',ex.precio);calcular();}
+  if(ex.mensajeria) setA('vMensajeria',ex.mensajeria);
   toast('✅ Datos extraídos');
 }
 function setA(id,val){
@@ -318,6 +368,16 @@ function mostrarUbi(url){
   document.getElementById('ubiLink').style.display='flex';
   document.getElementById('ubiBtnPaste').style.display='none';
   toast('📍 Ubicación guardada');
+}
+
+function enviarFormulario(){
+  const art = document.getElementById('vArticulo').value.trim();
+  const usd = document.getElementById('vUSD').value.trim();
+  const base = window.location.origin + window.location.pathname.replace('index.html','').replace(/\/$/,'') + '/pedido.html';
+  let url = base;
+  if(art) url += '?p=' + encodeURIComponent(art.split('\n')[0]);
+  if(usd) url += (art?'&':'?') + 'precio=' + encodeURIComponent(usd);
+  copiarTexto(url, '📲 Enlace copiado — pégalo en WhatsApp al cliente');
 }
 
 function copiarSolicitud(){
