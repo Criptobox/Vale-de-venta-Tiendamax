@@ -1,0 +1,25 @@
+{
+  "name": "Vale del Gestor \u2014 Tienda Max",
+  "short_name": "Vale Max",
+  "description": "Generador de vales para Tienda Max",
+  "start_url": "/Vale-de-venta-Tiendamax/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#c8a96e",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/Vale-de-venta-Tiendamax/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/Vale-de-venta-Tiendamax/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "scope": "/Vale-de-venta-Tiendamax/"
+}
