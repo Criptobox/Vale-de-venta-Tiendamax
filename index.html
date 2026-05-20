@@ -865,10 +865,20 @@ function abrirGoogleMaps() {
 }
 
 function abrirMapsMe() {
-  const { salida, destino } = buildQuery();
-  // Maps.me deep link con destino
-  const url = `https://maps.me/open?ll=${encodeURIComponent(destino)}&n=${encodeURIComponent(destino)}`;
-  window.open(url, '_blank');
+  const dir = document.getElementById('vDireccion').value.trim();
+  const destino = dir + ', La Habana, Cuba';
+  // Intentar abrir Maps.me app directamente
+  const appUrl = `mapsme://map?ll=23.1136,-82.3666&n=${encodeURIComponent(destino)}`;
+  const webFallback = `https://maps.me/?ll=23.1136,-82.3666&n=${encodeURIComponent(destino)}`;
+  // Intentar app, si no abre en 1.5s abrir Google Maps como fallback
+  const start = Date.now();
+  window.location = appUrl;
+  setTimeout(() => {
+    if (Date.now() - start < 2000) {
+      // App no abrió, usar Google Maps
+      abrirGoogleMaps();
+    }
+  }, 1500);
 }
 
 // ── RESET ──
