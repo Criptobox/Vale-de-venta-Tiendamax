@@ -398,18 +398,26 @@ textarea { resize: none; min-height: 60px; line-height: 1.5; }
           <!-- Mapa resultado -->
           <div id="mapaResultado" style="display:none;margin-top:10px">
             <div id="mapaIframe" style="border-radius:12px;overflow:hidden;border:1px solid #2d4a2d"></div>
+            <!-- Distancia al Capitolio -->
+            <div id="distanciaBox" style="display:none;margin-top:8px;background:#1a1a10;border:1px solid #c8a96e44;border-radius:10px;padding:11px 14px;">
+              <div style="font-size:10px;color:#888;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">📏 Distancia al Capitolio Nacional</div>
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <div id="distanciaVal" style="font-size:18px;font-weight:700;color:#c8a96e;font-family:'Playfair Display',serif">—</div>
+                <div id="tiempoVal" style="font-size:12px;color:#888"></div>
+              </div>
+            </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
               <button id="btnAbrirGM" onclick="abrirEnGoogleMaps()" style="
                 padding:10px;background:#1a2a1a;border:1px solid #2d4a2d;
                 border-radius:10px;color:#7ecb7e;font-size:12px;font-weight:600;
                 cursor:pointer;font-family:'DM Sans',sans-serif">
-                🗺️ Google Maps
+                🗺️ Ver en Google Maps
               </button>
-              <button id="btnAbrirMM" onclick="abrirEnMapsMe()" style="
-                padding:10px;background:#1a1a2a;border:1px solid #2d2d4a;
-                border-radius:10px;color:#7e9ecb;font-size:12px;font-weight:600;
+              <button id="btnRuta" onclick="abrirRutaCapitolio()" style="
+                padding:10px;background:#1a1a2a;border:1px solid #c8a96e44;
+                border-radius:10px;color:#c8a96e;font-size:12px;font-weight:600;
                 cursor:pointer;font-family:'DM Sans',sans-serif">
-                📍 Maps.me
+                🏛️ Ruta al Capitolio
               </button>
             </div>
           </div>
@@ -764,12 +772,13 @@ function g(id) { return document.getElementById(id).value.trim() || '—'; }
 
 function generarVale() {
   const ubiLinea = window._ubicacion ? `\n📍 Ubicación: ${window._ubicacion}` : '';
+  const distLinea = window._distanciaInfo ? `\n📏 Distancia: ${window._distanciaInfo}` : '';
   const text =
 `🔸Promotor: ${g('vPromotor')}
 
 🔸 Nombre Cliente: ${g('vCliente')}
 🔸Teléfono Cliente: ${g('vTelefono')}
-🔸Dirección Cliente: ${g('vDireccion')}${ubiLinea}
+🔸Dirección Cliente: ${g('vDireccion')}${ubiLinea}${distLinea}
 🔸Mensajería/ costo: ${g('vMensajeria')}
 🔸 Artículo y cantidad: ${g('vArticulo').replace(/\n/g, '\n   ')}
 🔸Precio USD/ Zelle: ${g('vPrecioUSD') !== '—' ? '$'+g('vPrecioUSD')+' USD' : '—'}
@@ -856,11 +865,25 @@ function onDireccionChange() {
 
 let _coordsIA = null;
 
+// Coordenadas fijas del Capitolio Nacional de La Habana
+const CAPITOLIO = { lat: 23.13572, lng: -82.35897, nombre: 'Capitolio Nacional, La Habana' };
+
+// Calcula distancia en línea recta entre dos puntos GPS (fórmula Haversine)
+function calcularDistanciaKm(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLng/2) * Math.sin(dLng/2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
 async function buscarConIA() {
   const dir = document.getElementById('vDireccion').value.trim();
   if (!dir) return;
   const btn = document.getElementById('btnMapaIA');
-  btn.textContent = '⏳ Buscando...';
+  btn.innerHTML = '⏳ Buscando con IA...';
   btn.disabled = true;
 
   try {
@@ -872,7 +895,7 @@ async function buscarConIA() {
         max_tokens: 200,
         messages: [{
           role: 'user',
-          content: 'Dame las coordenadas GPS (latitud y longitud) de esta dirección en La Habana, Cuba: "' + dir + '". Responde SOLO con JSON así: {"lat": 23.1234, "lng": -82.1234, "nombre": "descripción corta del lugar"}. Sin texto extra.'
+          content: 'Dame las coordenadas GPS (latitud y longitud) de esta dirección en La Habana, Cuba: "' + dir + '". Responde SOLO con JSON así: {"lat": 23.1234, "lng": -82.1234, "nombre": "descripción corta del lugar"}. Sin texto extra, sin markdown.'
         }]
       })
     });
@@ -881,13 +904,32 @@ async function buscarConIA() {
     const coords = JSON.parse(texto.replace(/```json|```/g,'').trim());
     _coordsIA = coords;
 
-    // Mostrar mapa embed
+    // Mostrar mapa embed centrado en el cliente
     const mapUrl = 'https://maps.google.com/maps?q=' + coords.lat + ',' + coords.lng + '&z=16&output=embed';
     document.getElementById('mapaIframe').innerHTML = '<iframe src="' + mapUrl + '" width="100%" height="220" frameborder="0" style="border:0" allowfullscreen></iframe>';
     document.getElementById('mapaResultado').style.display = 'block';
-    btn.textContent = '✅ ' + coords.nombre;
+
+    // Calcular distancia al Capitolio
+    const distKm = calcularDistanciaKm(coords.lat, coords.lng, CAPITOLIO.lat, CAPITOLIO.lng);
+    const distTexto = distKm < 1
+      ? Math.round(distKm * 1000) + ' m del Capitolio'
+      : distKm.toFixed(1) + ' km del Capitolio';
+    // Tiempo estimado a moto (~25 km/h en La Habana)
+    const minutos = Math.round((distKm / 25) * 60);
+    const tiempoTexto = minutos < 60
+      ? '~' + minutos + ' min en moto'
+      : '~' + Math.round(minutos/60) + 'h ' + (minutos%60) + 'min en moto';
+
+    document.getElementById('distanciaVal').textContent = distTexto;
+    document.getElementById('tiempoVal').textContent = tiempoTexto;
+    document.getElementById('distanciaBox').style.display = 'block';
+
+    // Guardar en variable global para el vale
+    window._distanciaInfo = distTexto + ' · ' + tiempoTexto;
+
+    btn.innerHTML = '✅ ' + coords.nombre;
   } catch(e) {
-    btn.textContent = '⚠️ No se encontró — edita la dirección';
+    btn.innerHTML = '⚠️ No se encontró — edita la dirección';
     btn.disabled = false;
   }
 }
@@ -897,14 +939,11 @@ function abrirEnGoogleMaps() {
   window.open('https://www.google.com/maps?q=' + _coordsIA.lat + ',' + _coordsIA.lng, '_blank');
 }
 
-function abrirEnMapsMe() {
+function abrirRutaCapitolio() {
   if (!_coordsIA) return;
-  // Maps.me con coordenadas exactas sí funciona
-  const a = document.createElement('a');
-  a.href = 'mapsme://?ll=' + _coordsIA.lat + ',' + _coordsIA.lng + '&n=' + encodeURIComponent(_coordsIA.nombre);
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  // Ruta desde el cliente hasta el Capitolio Nacional
+  const url = 'https://www.google.com/maps/dir/' + _coordsIA.lat + ',' + _coordsIA.lng + '/' + CAPITOLIO.lat + ',' + CAPITOLIO.lng;
+  window.open(url, '_blank');
 }
 
 function buildQuery() {
@@ -927,6 +966,10 @@ function resetForm() {
   document.getElementById('ubiBtnPaste').style.display = 'flex';
   document.getElementById('mapaBtns').style.display = 'none';
   window._ubicacion = null;
+  window._distanciaInfo = null;
+  document.getElementById('distanciaBox').style.display = 'none';
+  document.getElementById('distanciaVal').textContent = '—';
+  document.getElementById('tiempoVal').textContent = '';
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
