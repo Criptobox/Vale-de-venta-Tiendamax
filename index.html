@@ -185,6 +185,18 @@ hr{border:none;border-top:1px solid var(--border);margin:12px 0}
   </div>
 </div>
 
+<!-- MODAL FORMULARIO -->
+<div class="modal-bg" id="modalForm" onclick="if(event.target===this)document.getElementById('modalForm').classList.remove('open')">
+  <div class="modal">
+    <div style="font-family:'Playfair Display',serif;font-size:17px;margin-bottom:14px">📲 Enviar formulario</div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Elige cómo enviarle el formulario al cliente:</p>
+    <div id="modalFormUrl" style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:11px;font-size:11px;color:var(--dim);word-break:break-all;margin-bottom:14px;font-family:monospace"></div>
+    <button class="btn-gold" style="margin-top:0" onclick="abrirFormWA()">📱 Enviar por WhatsApp</button>
+    <button class="btn-ghost" style="margin-top:8px" onclick="copiarEnlaceForm()">📋 Copiar enlace</button>
+    <button class="btn-ghost" style="margin-top:6px" onclick="document.getElementById('modalForm').classList.remove('open')">Cerrar</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -378,7 +390,21 @@ function enviarFormulario(){
   if(art) params.push('p=' + encodeURIComponent(art.split('\n')[0]));
   if(usd) params.push('precio=' + encodeURIComponent(usd));
   const url = base + (params.length ? '?' + params.join('&') : '');
-  copiarTexto(url, '📲 Enlace copiado — pégalo en WhatsApp al cliente');
+  // Abrir modal con opciones
+  document.getElementById('modalFormUrl').textContent = url;
+  document.getElementById('modalForm').classList.add('open');
+}
+
+function abrirFormWA(){
+  const url = document.getElementById('modalFormUrl').textContent;
+  const msg = 'Para completar tu pedido llena este formulario rápido:\n' + url;
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+  document.getElementById('modalForm').classList.remove('open');
+}
+function copiarEnlaceForm(){
+  const url = document.getElementById('modalFormUrl').textContent;
+  copiarTexto(url, '📋 Enlace copiado');
+  document.getElementById('modalForm').classList.remove('open');
 }
 
 function copiarSolicitud(){
