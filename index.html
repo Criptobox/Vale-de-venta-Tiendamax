@@ -373,10 +373,11 @@ function mostrarUbi(url){
 function enviarFormulario(){
   const art = document.getElementById('vArticulo').value.trim();
   const usd = document.getElementById('vUSD').value.trim();
-  const base = window.location.origin + window.location.pathname.replace('index.html','').replace(/\/$/,'') + '/pedido.html';
-  let url = base;
-  if(art) url += '?p=' + encodeURIComponent(art.split('\n')[0]);
-  if(usd) url += (art?'&':'?') + 'precio=' + encodeURIComponent(usd);
+  const base = 'https://criptobox.github.io/Vale-de-venta-Tiendamax/pedido.html';
+  let params = [];
+  if(art) params.push('p=' + encodeURIComponent(art.split('\n')[0]));
+  if(usd) params.push('precio=' + encodeURIComponent(usd));
+  const url = base + (params.length ? '?' + params.join('&') : '');
   copiarTexto(url, '📲 Enlace copiado — pégalo en WhatsApp al cliente');
 }
 
