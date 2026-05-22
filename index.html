@@ -390,9 +390,8 @@ function enviarFormulario(){
   if(art) params.push('p=' + encodeURIComponent(art.split('\n')[0]));
   if(usd) params.push('precio=' + encodeURIComponent(usd));
   const url = base + (params.length ? '?' + params.join('&') : '');
-  // Abrir modal con opciones
-  document.getElementById('modalFormUrl').textContent = url;
-  document.getElementById('modalForm').classList.add('open');
+  const msg = 'Para completar tu pedido llena este formulario:\n' + url;
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
 }
 
 function abrirFormWA(){
