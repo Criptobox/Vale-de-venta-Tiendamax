@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0a0a0a">
+<title>Vale del Gestor — Tienda Max</title>
+<link rel="manifest" href="/Vale-de-venta-Tiendamax/manifest.json">
+<link rel="apple-touch-icon" href="/Vale-de-venta-Tiendamax/icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#c8a96e;--gold-dark:#8b6914;--bg:#0a0a0a;--bg2:#111;--bg3:#181818;--bg4:#222;--border:#2a2a2a;--border-gold:#c8a96e33;--text:#f0e6d3;--muted:#888;--dim:#555;--green-light:#52b788;--orange:#e07b3a}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;padding-bottom:40px}
+.hdr{background:#111;border-bottom:1px solid var(--border-gold);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.logo{width:38px;height:38px;background:linear-gradient(135deg,var(--gold),var(--gold-dark));border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-weight:900;font-size:18px;color:#0a0a0a}
+.tasa-btn{background:var(--bg3);border:1px solid var(--border-gold);border-radius:20px;padding:7px 14px;font-size:12px;color:var(--gold);font-weight:600;cursor:pointer}
+.tabs{display:flex;background:var(--bg3);border-radius:12px;padding:4px;margin:14px 14px 0}
+.tab{flex:1;padding:9px;text-align:center;font-size:12px;border-radius:9px;cursor:pointer;color:var(--dim)}
+.tab.active{background:var(--bg2);color:var(--text);font-weight:600}
+.tab-panel{display:none;padding:0 14px}
+.tab-panel.active{display:block}
+.sec{background:var(--bg2);border:1px solid var(--border);border-radius:14px;margin-top:14px;overflow:hidden}
+.sec-hdr{padding:11px 14px;border-bottom:1px solid var(--border);font-size:11px;color:var(--gold);letter-spacing:2px;text-transform:uppercase;font-weight:600;display:flex;align-items:center;gap:8px}
+.dot{width:3px;height:14px;background:var(--gold);border-radius:2px}
+.sec-body{padding:14px}
+.fld{margin-bottom:12px}
+.fld:last-child{margin-bottom:0}
+.lbl{font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+.la{color:var(--gold);font-size:9px;margin-left:5px}
+.lf{color:var(--orange);font-size:9px;margin-left:5px}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+input,textarea{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;padding:11px 13px;outline:none;font-family:'DM Sans',sans-serif;transition:border .2s;-webkit-appearance:none}
+input:focus,textarea:focus{border-color:var(--gold)}
+.auto{background:#1a2a1a!important;border-color:#2d4a2d!important}
+.fill{border-color:#e07b3a33}
+textarea{resize:none;line-height:1.5}
+input[readonly]{color:var(--muted)}
+.paste-box{width:100%;min-height:90px;background:var(--bg3);border:1px dashed var(--border);border-radius:10px;color:var(--text);font-size:13px;padding:12px;outline:none;font-family:monospace;line-height:1.6}
+.paste-box.ok{border-color:var(--gold)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{background:#1a2a1a;border:1px solid #2d4a2d;border-radius:20px;padding:4px 11px;font-size:11px;color:var(--green-light)}
+.btn-gold{width:100%;padding:14px;background:linear-gradient(135deg,var(--gold),var(--gold-dark));border:none;border-radius:12px;color:#0a0a0a;font-weight:700;font-size:15px;cursor:pointer;font-family:'Playfair Display',serif;margin-top:12px;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-ghost{width:100%;padding:12px;background:transparent;border:1px solid var(--border);border-radius:12px;color:var(--muted);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:8px}
+.btn-act{width:100%;padding:11px;background:#1a1a1a;border:1px solid var(--border-gold);border-radius:10px;color:var(--gold);font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-parse{width:100%;padding:12px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:var(--muted);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:8px}
+.btn-parse.ready{background:#1a1a10;border-color:var(--gold);color:var(--gold)}
+.tasa-box{background:var(--bg3);border:1px solid var(--border-gold);border-radius:10px;padding:12px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.tasa-val{font-size:20px;font-weight:700;color:var(--gold);font-family:'Playfair Display',serif}
+.total-box{background:linear-gradient(135deg,#1a2a1a,#152015);border:1px solid #2d5a2d;border-radius:10px;padding:14px;display:flex;justify-content:space-between;align-items:center;margin-top:4px}
+.ubi-btn{width:100%;padding:11px;background:var(--bg3);border:1px dashed var(--border);border-radius:10px;color:var(--muted);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:'DM Sans',sans-serif;margin-top:8px}
+.ubi-link{display:flex;align-items:center;gap:8px;background:#1a2a1a;border:1px solid #2d4a2d;border-radius:10px;padding:11px 14px;margin-top:8px;font-size:13px;color:var(--green-light);text-decoration:none;word-break:break-all}
+.atencion{background:#1a1410;border:1px solid var(--border-gold);border-radius:12px;padding:14px;font-size:12px;color:var(--muted);line-height:1.9;margin-top:14px}
+hr{border:none;border-top:1px solid var(--border);margin:12px 0}
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#1a2a1a;border:1px solid #2d5a2d;border-radius:30px;padding:11px 22px;font-size:13px;color:var(--green-light);opacity:0;transition:opacity .3s;white-space:nowrap;z-index:999;pointer-events:none}
+.toast.show{opacity:1}
+.modal-bg{position:fixed;inset:0;background:#000a;backdrop-filter:blur(4px);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border-gold);border-radius:20px 20px 0 0;padding:22px 18px 38px;width:100%;max-width:500px;animation:up .3s ease}
+@keyframes up{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.hist-empty{text-align:center;color:var(--dim);font-size:13px;padding:24px}
+.hist-item{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div style="display:flex;align-items:center;gap:10px">
+    <div class="logo">M</div>
+    <div>
+      <div style="font-family:'Playfair Display',serif;font-size:16px">Tienda Max</div>
+      <div style="font-size:10px;color:var(--gold);letter-spacing:2px">VALE DEL GESTOR</div>
+    </div>
+  </div>
+  <div class="tasa-btn" onclick="abrirTasa()">💱 <span id="tasaHdr">—</span> CUP</div>
+</div>
+
+<div class="modal-bg" id="modalTasa" onclick="if(event.target===this)cerrarTasa()">
+  <div class="modal">
+    <div style="font-family:'Playfair Display',serif;font-size:18px;margin-bottom:14px">💱 Tasa del día</div>
+    <a href="https://eltoque.com/es" target="_blank" rel="noopener"
+      style="display:flex;align-items:center;justify-content:space-between;background:#1a1a1a;border:1px solid #c8a96e33;border-radius:12px;padding:12px 14px;margin-bottom:14px;text-decoration:none">
+      <div>
+        <div style="font-size:13px;color:var(--gold);font-weight:600">📊 Ver tasa en elToque</div>
+        <div style="font-size:11px;color:var(--dim);margin-top:2px">eltoque.com · tasa informal</div>
+      </div>
+      <div style="font-size:18px;color:var(--dim)">↗</div>
+    </a>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:10px">Escribe la tasa que viste:</p>
+    <div style="display:grid;grid-template-columns:1fr auto;gap:8px">
+      <input type="number" id="tasaInput" placeholder="Ej: 380" style="font-size:20px;font-weight:700;text-align:center;color:var(--gold)">
+      <button class="btn-gold" style="margin-top:0;padding:11px 18px;font-size:14px;border-radius:10px;width:auto" onclick="guardarTasa()">✓</button>
+    </div>
+    <p style="font-size:11px;color:var(--dim);margin-top:8px">+10 CUP se agrega automático para pagos en MN.</p>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="goTab('nuevo')">✍️ Nuevo vale</div>
+  <div class="tab" onclick="goTab('historial')">📋 Historial</div>
+</div>
+
+<div class="tab-panel active" id="tab-nuevo">
+
+  <div class="sec">
+    <div class="sec-hdr"><div class="dot"></div>PEGAR MENSAJE DEL CLIENTE</div>
+    <div class="sec-body">
+      <div class="lbl">Mensaje de WhatsApp</div>
+      <div class="paste-box" id="pasteArea" contenteditable="true" oninput="onType()" onpaste="setTimeout(onType,60)"></div>
+      <div class="chips" id="chips"></div>
+      <button class="btn-parse" id="parseBtn" onclick="extraer()">⚡ Extraer datos automáticamente</button>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-hdr"><div class="dot"></div>DATOS DEL CLIENTE</div>
+    <div class="sec-body">
+      <div class="fld"><div class="lbl">🔸 Promotor</div><input type="text" id="vPromotor" value="JULIO"></div>
+      <div class="fld"><div class="lbl">📱 WhatsApp de la tienda <span class="la">se guarda</span></div><input type="tel" id="vWaTienda" placeholder="5354320170" oninput="guardarWaTienda()"></div>
+      <div class="fld"><div class="lbl">🔸 Nombre cliente<span class="la">✓ auto</span></div><input type="text" id="vCliente" class="auto" placeholder="—"></div>
+      <div class="r2">
+        <div class="fld"><div class="lbl">🔸 Teléfono<span class="la">✓ auto</span></div><input type="tel" id="vTelefono" class="auto" placeholder="—"></div>
+        <div class="fld"><div class="lbl">🔸 Mensajería<span class="lf">✏️</span></div><input type="text" id="vMensajeria" class="fill" placeholder="Moto / 500" oninput="recalc()"></div>
+      </div>
+      <div class="fld"><div class="lbl">🔸 Dirección<span class="la">✓ auto</span></div><input type="text" id="vDireccion" class="auto" placeholder="—" oninput="chkMapa()"></div>
+      <div id="mapaBtns" style="display:none">
+        <button class="btn-act" onclick="copiarDir()">📋 Copiar dirección para Maps.me</button>
+      </div>
+      <a id="btnFormulario" href="#" target="_blank" onclick="return prepFormulario(this)" class="btn-act" style="text-decoration:none">📲 Enviar formulario al cliente</a>
+      <button class="btn-act" style="margin-top:6px;color:var(--muted);border-color:var(--border)" onclick="copiarSolicitud()">📋 Copiar solicitud manual</button>
+      <div class="lbl" style="margin-top:12px">📍 Ubicación WhatsApp</div>
+      <button class="ubi-btn" id="ubiBtnPaste" onclick="pegarUbi()">📌 Pegar enlace de ubicación</button>
+      <a id="ubiLink" class="ubi-link" style="display:none" href="#" target="_blank" rel="noopener">📍 <span id="ubiTxt"></span></a>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-hdr"><div class="dot"></div>ARTÍCULO</div>
+    <div class="sec-body">
+      <div class="fld"><div class="lbl">🔸 Artículo y cantidad<span class="la">✓ auto</span></div><textarea id="vArticulo" class="auto" rows="2" placeholder="—"></textarea></div>
+      <div class="fld"><div class="lbl">🔸 Garantía<span class="lf">✏️</span></div><input type="text" id="vGarantia" class="fill" placeholder="Ej: 3 meses"></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-hdr"><div class="dot"></div>PRECIOS Y PAGO</div>
+    <div class="sec-body">
+      <div class="tasa-box">
+        <div><div style="font-size:12px;color:var(--muted)">Tasa hoy · CUP × USD</div><div style="font-size:10px;color:var(--orange)">+10 CUP para pagos en MN</div></div>
+        <div class="tasa-val"><span id="tasaDisp">—</span> CUP</div>
+      </div>
+      <div class="r2">
+        <div class="fld"><div class="lbl">🔸 Precio USD/Zelle<span class="la">✓ auto</span></div><input type="number" id="vUSD" class="auto" placeholder="0.00" step="0.01" oninput="calcular()"></div>
+        <div class="fld"><div class="lbl">🔸 Precio CUP<span class="la">✓ auto</span></div><input type="number" id="vCUP" class="auto" placeholder="0" oninput="recalc()"></div>
+      </div>
+      <div class="r2">
+        <div class="fld"><div class="lbl">💵 Recibido CUP</div><input type="number" id="vRecibido" placeholder="0" oninput="calcVuelto()"></div>
+        <div class="fld"><div class="lbl">🔸 Vuelto</div><input type="number" id="vVuelto" readonly placeholder="—"></div>
+      </div>
+      <hr>
+      <div class="total-box">
+        <div style="font-size:13px;color:var(--green-light)">🔸 Total a pagar</div>
+        <div style="font-size:22px;font-weight:700;color:var(--green-light);font-family:'Playfair Display',serif" id="vTotal">—</div>
+      </div>
+      <div class="fld" style="margin-top:12px"><div class="lbl">📅 Fecha y hora</div><input type="text" id="vFecha" readonly></div>
+    </div>
+  </div>
+
+  <div class="atencion">
+    <b>🚨 ATENCIÓN 🚨</b><br>
+    • Horarios de atención: 8:00am — 8:00pm<br>
+    • Solo aceptamos hasta cinco billetes de 1 USD por compra<br>
+    • Pagos en CUP con denominación de 50 en adelante<br>
+    • Solo billetes en buen estado (ni rotos ni manchados)
+  </div>
+
+  <button class="btn-gold" onclick="copiarVale()">📋 Copiar Vale para WhatsApp</button>
+  <button class="btn-ghost" onclick="resetForm()">🔄 Nuevo cliente</button>
+</div>
+
+<div class="tab-panel" id="tab-historial">
+  <div class="sec" style="margin-top:14px">
+    <div class="sec-hdr"><div class="dot"></div>VALES RECIENTES</div>
+    <div class="sec-body" id="histBody"><div class="hist-empty">Aún no hay vales guardados</div></div>
+  </div>
+</div>
+
+<!-- MODAL FORMULARIO -->
+<div class="modal-bg" id="modalForm" onclick="if(event.target===this)document.getElementById('modalForm').classList.remove('open')">
+  <div class="modal">
+    <div style="font-family:'Playfair Display',serif;font-size:17px;margin-bottom:14px">📲 Enviar formulario</div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Elige cómo enviarle el formulario al cliente:</p>
+    <div id="modalFormUrl" style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:11px;font-size:11px;color:var(--dim);word-break:break-all;margin-bottom:14px;font-family:monospace"></div>
+    <button class="btn-gold" style="margin-top:0" onclick="abrirFormWA()">📱 Enviar por WhatsApp</button>
+    <button class="btn-ghost" style="margin-top:8px" onclick="copiarEnlaceForm()">📋 Copiar enlace</button>
+    <button class="btn-ghost" style="margin-top:6px" onclick="document.getElementById('modalForm').classList.remove('open')">Cerrar</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let tasa = parseInt(localStorage.getItem('tasaMax')||'0')||0;
+let _ubi = null;
+
+function renderTasa(){
+  document.getElementById('tasaDisp').textContent = tasa||'—';
+  document.getElementById('tasaHdr').textContent = tasa||'—';
+}
+function abrirTasa(){
+  document.getElementById('tasaInput').value = tasa||''
+  document.getElementById('modalTasa').classList.add('open');
+  setTimeout(()=>document.getElementById('tasaInput').focus(),300);
+}
+function cerrarTasa(){ document.getElementById('modalTasa').classList.remove('open'); }
+function guardarTasa(){
+  const v=parseInt(document.getElementById('tasaInput').value);
+  if(!v||v<50){toast('⚠️ Tasa inválida');return;}
+  tasa=v; localStorage.setItem('tasaMax',tasa);
+  cerrarTasa(); renderTasa(); calcular();
+  toast('✅ Tasa: '+tasa+' CUP');
+}
+
+function getMens(){
+  const m=document.getElementById('vMensajeria').value.match(/\d+/);
+  return m?parseInt(m[0]):0;
+}
+function calcular(){
+  const usd=parseFloat(document.getElementById('vUSD').value)||0;
+  if(usd&&tasa) document.getElementById('vCUP').value=Math.round(usd*(tasa+10));
+  recalc();
+}
+function recalc(){
+  const cup=parseInt(document.getElementById('vCUP').value)||0;
+  const mens=getMens();
+  document.getElementById('vTotal').textContent=cup?(cup+mens).toLocaleString()+' CUP':'—';
+  calcVuelto();
+}
+function calcVuelto(){
+  const rec=parseInt(document.getElementById('vRecibido').value)||0;
+  const cup=parseInt(document.getElementById('vCUP').value)||0;
+  const total=cup+getMens();
+  document.getElementById('vVuelto').value=(rec&&total)?Math.max(0,rec-total):'';
+}
+
+function onType(){
+  const area=document.getElementById('pasteArea');
+  const text=area.innerText.trim();
+  area.classList.toggle('ok',text.length>15);
+  document.getElementById('parseBtn').classList.toggle('ready',text.length>15);
+  if(text.length>15) renderChips(text);
+}
+function renderChips(text){
+  const ex=extract(text);
+  let h='';
+  if(ex.cliente) h+='<div class="chip">👤 '+ex.cliente+'</div>';
+  if(ex.telefono) h+='<div class="chip">📞 '+ex.telefono+'</div>';
+  if(ex.articulo) h+='<div class="chip">📦 '+ex.articulo.split('\n')[0]+'</div>';
+  if(ex.precio) h+='<div class="chip">💰 $'+ex.precio+' USD</div>';
+  document.getElementById('chips').innerHTML=h;
+}
+function extract(text){
+  const r={cliente:'',telefono:'',direccion:'',articulo:'',precio:'',mensajeria:''};
+
+  // ── Formato vale con 🔸 ──
+  if(text.includes('🔸')){
+    const get = (key) => {
+      const m = text.match(new RegExp('🔸[^:\n]*'+key+'[^:\n]*:\\s*(.+?)(?=\n|$)','i'));
+      return m ? m[1].trim() : '';
+    };
+    r.cliente   = get('Nombre') || get('Cliente');
+    r.telefono  = get('Tel') || get('Tlf') || get('Teléfono');
+    r.direccion = get('Direcci');
+    r.articulo  = get('Art') || get('cantidad');
+    r.mensajeria= get('Mensaj');
+    const pu = text.match(/🔸[^\n]*(?:USD|Zelle)[^\n]*:\s*\$?\s*(\d+[\d.,]*)/i);
+    if(pu) r.precio = pu[1].replace(/,/g,'');
+    Object.keys(r).forEach(k => { if(r[k]==='—') r[k]=''; });
+    return r;
+  }
+
+  // ── Formato formulario pedido (Nuevo pedido) ──
+  if(text.includes('Nuevo pedido')){
+    const gf = (emoji) => {
+      const m = text.match(new RegExp(emoji+'[^:]*:\\s*(.+?)(?=\n|$)'));
+      return m ? m[1].trim() : '';
+    };
+    r.cliente  = gf('👤');
+    r.telefono = gf('📞');
+    const prodLine = gf('📦');
+    const pm = prodLine.match(/^(.*?)\s*—\s*\$?\s*([\d.]+)\s*USD/i);
+    if(pm){ r.articulo = pm[1].trim(); r.precio = pm[2].trim(); }
+    else  { r.articulo = prodLine; }
+    const ent = gf('🛵');
+    if(/Mensajer/i.test(ent)){
+      const dm = ent.match(/Mensajer[íi]a a:\s*(.+)/i);
+      if(dm) r.direccion = dm[1].trim();
+      r.mensajeria = 'Mensajería';
+    } else if(ent){
+      r.mensajeria = 'Recoge en tienda';
+    }
+    return r;
+  }
+
+  // ── Formato libre del cliente ──
+  const nk=text.match(/(?:soy|me llamo)\s+([A-ZÁÉÍÓÚa-záéíóúñÑ][A-ZÁÉÍÓÚa-záéíóúñÑ\s]{2,28}?)(?=,|\.|$|\d|\n)/i);
+  if(nk){r.cliente=nk[1].trim();}
+  else{
+    for(const l of text.split('\n').map(l=>l.trim()).filter(Boolean)){
+      if(/^[A-ZÁÉÍÓÚa-záéíóúñÑ][A-ZÁÉÍÓÚa-záéíóúñÑ\s]{2,30}$/.test(l)){r.cliente=l;break;}
+    }
+  }
+  const tel=text.match(/(\+?5?[3-9]\d{7,10})/);
+  if(tel) r.telefono=tel[1].trim();
+  const dk=text.match(/(?:dirección|direccion|vivo en|dir)[:\-]?\s*(.+?)(?:\n|$)/i);
+  if(dk){r.direccion=dk[1].trim();}
+  else{
+    for(const l of text.split('\n').map(l=>l.trim()).filter(Boolean)){
+      if(/#|[Cc]alle|[Cc]alzada|[Aa]venida|[Rr]eparto|[Ee]squina|[Ee]dif|[Aa]pto/.test(l)){r.direccion=l;break;}
+    }
+  }
+  const prods=[...text.matchAll(/📦\s*(.+?)(?=\n|$)/g)].map(m=>m[1].trim());
+  if(prods.length>0){r.articulo=prods.join('\n');}
+  else{
+    const p2=text.match(/(?:quiero|pedir|llevar)\s+(?:el|la|un|una)?\s*(.+?)(?:\.|,|\?|\n|$)/i);
+    if(p2) r.articulo=p2[1].trim();
+  }
+  const tot=text.match(/Total[:\s]*\$?([\d.]+)\s*USD/i);
+  if(tot){r.precio=tot[1];}
+  else{
+    const p3=text.match(/\$\s*([\d.]+)\s*USD/i);
+    if(p3) r.precio=p3[1];
+  }
+  return r;
+}
+function extraer(){
+  const text=document.getElementById('pasteArea').innerText.trim();
+  if(!text){toast('⚠️ Pega un mensaje primero');return;}
+  const ex=extract(text);
+  if(ex.cliente) setA('vCliente',ex.cliente);
+  if(ex.telefono) setA('vTelefono',ex.telefono);
+  if(ex.direccion){setA('vDireccion',ex.direccion);chkMapa();}
+  if(ex.articulo) setA('vArticulo',ex.articulo);
+  if(ex.precio){setA('vUSD',ex.precio);calcular();}
+  if(ex.mensajeria) setA('vMensajeria',ex.mensajeria);
+  toast('✅ Datos extraídos');
+}
+function setA(id,val){
+  const el=document.getElementById(id);
+  el.value=val; el.classList.add('auto');
+}
+
+function chkMapa(){
+  const dir=document.getElementById('vDireccion').value.trim();
+  document.getElementById('mapaBtns').style.display=dir.length>3?'block':'none';
+}
+function copiarDir(){
+  copiarTexto(document.getElementById('vDireccion').value.trim()+', La Habana, Cuba','📋 Dirección copiada — pégala en Maps.me');
+}
+
+async function pegarUbi(){
+  try{
+    const text=await navigator.clipboard.readText();
+    if(text&&text.startsWith('http')){mostrarUbi(text.trim());return;}
+  }catch(e){}
+  const url=prompt('Pega el enlace de ubicación:');
+  if(url) mostrarUbi(url.trim());
+}
+function mostrarUbi(url){
+  _ubi=url;
+  document.getElementById('ubiTxt').textContent=url.length>42?url.substring(0,42)+'…':url;
+  document.getElementById('ubiLink').href=url;
+  document.getElementById('ubiLink').style.display='flex';
+  document.getElementById('ubiBtnPaste').style.display='none';
+  toast('📍 Ubicación guardada');
+}
+
+function getNumeroTienda(){
+  return (localStorage.getItem('waTienda')||'5354320170').replace(/\D/g,'');
+}
+function guardarWaTienda(){
+  const v=document.getElementById('vWaTienda').value.replace(/\D/g,'');
+  if(v.length>=8) localStorage.setItem('waTienda',v);
+}
+function prepFormulario(el){
+  const art = document.getElementById('vArticulo').value.trim();
+  const usd = document.getElementById('vUSD').value.trim();
+  const base = 'https://criptobox.github.io/Vale-de-venta-Tiendamax/pedido.html';
+  let params = ['wa=' + getNumeroTienda()];
+  if(art) params.push('p=' + encodeURIComponent(art.split('\n')[0]));
+  if(usd) params.push('precio=' + encodeURIComponent(usd));
+  const url = base + '?' + params.join('&');
+  const msg = 'Para completar tu pedido llena este formulario:\n' + url;
+  el.href = 'https://wa.me/?text=' + encodeURIComponent(msg);
+  return true;
+}
+
+function abrirFormWA(){
+  const url = document.getElementById('modalFormUrl').textContent;
+  const msg = 'Para completar tu pedido llena este formulario rápido:\n' + url;
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+  document.getElementById('modalForm').classList.remove('open');
+}
+function copiarEnlaceForm(){
+  const url = document.getElementById('modalFormUrl').textContent;
+  copiarTexto(url, '📋 Enlace copiado');
+  document.getElementById('modalForm').classList.remove('open');
+}
+
+function copiarSolicitud(){
+  const art=document.getElementById('vArticulo').value.trim();
+  let pl='';
+  if(art){
+    const lista=art.split('\n').map(s=>s.trim()).filter(Boolean);
+    pl=lista.length>1?'\n\n📦 *Productos:*\n'+lista.map(p=>'• '+p).join('\n'):'\n\n📦 *'+art+'*';
+  }
+  copiarTexto('Para completar tu pedido necesito estos datos:'+pl+'\n\n👤 Nombre completo:\n📞 Teléfono:\n📍 Dirección de entrega:\n📌 Comparte tu ubicación de WhatsApp\n💵 ¿Pagas en USD/Zelle o en CUP?\n🔄 ¿Necesitas vuelto?\n🛵 ¿Necesitas mensajería o recoges tú?','✅ Copiado — pégalo en WhatsApp');
+}
+
+function g(id){return document.getElementById(id).value.trim()||'—';}
+function copiarVale(){
+  const ubiLinea=_ubi?'\n📍 Ubicación: '+_ubi:'';
+  const texto=`🔸Promotor: ${g('vPromotor')}
+
+🔸 Nombre Cliente: ${g('vCliente')}
+🔸Teléfono Cliente: ${g('vTelefono')}
+🔸Dirección Cliente: ${g('vDireccion')}${ubiLinea}
+🔸Mensajería/ costo: ${g('vMensajeria')}
+🔸 Artículo y cantidad: ${g('vArticulo').replace(/\n/g,'\n   ')}
+🔸Precio USD/ Zelle: ${g('vUSD')!=='—'?'$'+g('vUSD')+' USD':'—'}
+🔸Precio CUP: ${g('vCUP')!=='—'?parseInt(g('vCUP')).toLocaleString()+' CUP':'—'}
+🔸 Vuelto: ${g('vVuelto')!=='—'?g('vVuelto')+' CUP':'—'}
+
+🔸 Total a pagar: ${document.getElementById('vTotal').textContent}
+
+*Garantía: ${g('vGarantia')}
+*Fecha y hora de Venta: ${g('vFecha')}
+
+🚨ATENCIÓN🚨
+•   Horarios de atención al cliente:
+    8:00am - 8:00pm.
+* Solo aceptamos hasta cinco billetes de 1 USD por compra.
+* Los pagos en CUP deben ser con denominación de 50 en adelante.
+* Solo se aceptan billetes en buen estado (ni rotos ni manchados)`;
+  copiarTexto(texto,'✅ Vale copiado — pégalo en WhatsApp');
+  guardarHist();
+}
+
+function guardarHist(){
+  const hist=JSON.parse(localStorage.getItem('valesMax')||'[]');
+  hist.unshift({cliente:g('vCliente'),articulo:g('vArticulo').split('\n')[0],total:document.getElementById('vTotal').textContent,fecha:g('vFecha'),ts:Date.now()});
+  localStorage.setItem('valesMax',JSON.stringify(hist.slice(0,30)));
+}
+function renderHist(){
+  const hist=JSON.parse(localStorage.getItem('valesMax')||'[]');
+  const body=document.getElementById('histBody');
+  if(!hist.length){body.innerHTML='<div class="hist-empty">Aún no hay vales guardados</div>';return;}
+  body.innerHTML=hist.map(v=>`<div class="hist-item"><div style="display:flex;justify-content:space-between;margin-bottom:3px"><div style="font-size:14px;font-weight:500">${v.cliente}</div><div style="font-size:11px;color:var(--dim)">${v.fecha}</div></div><div style="font-size:12px;color:var(--muted)">${v.articulo} · <span style="color:var(--green-light)">${v.total}</span></div></div>`).join('');
+}
+
+function copiarTexto(texto,msg){
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(texto).then(()=>toast(msg)).catch(()=>fb(texto,msg));
+  }else fb(texto,msg);
+}
+function fb(texto,msg){
+  const ta=document.createElement('textarea');
+  ta.value=texto; ta.style.cssText='position:fixed;top:0;left:0;opacity:0';
+  document.body.appendChild(ta); ta.focus(); ta.select();
+  try{document.execCommand('copy');toast(msg);}catch{toast('⚠️ Copia manualmente');}
+  document.body.removeChild(ta);
+}
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+function goTab(name){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['nuevo','historial'][i]===name));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  if(name==='historial') renderHist();
+}
+function resetForm(){
+  ['vCliente','vTelefono','vDireccion','vMensajeria','vArticulo','vGarantia','vUSD','vCUP','vRecibido','vVuelto'].forEach(id=>{
+    document.getElementById(id).value='';
+    document.getElementById(id).classList.remove('auto');
+  });
+  document.getElementById('vTotal').textContent='—';
+  document.getElementById('pasteArea').innerText='';
+  document.getElementById('pasteArea').classList.remove('ok');
+  document.getElementById('chips').innerHTML='';
+  document.getElementById('parseBtn').classList.remove('ready');
+  document.getElementById('ubiLink').style.display='none';
+  document.getElementById('ubiBtnPaste').style.display='flex';
+  document.getElementById('mapaBtns').style.display='none';
+  document.getElementById('vFecha').value=fd();
+  _ubi=null;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function fd(){return new Date().toLocaleString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});}
+
+renderTasa();
+document.getElementById('vWaTienda').value = localStorage.getItem('waTienda') || '';
+document.getElementById('vFecha').value=fd();
+if(!tasa) setTimeout(abrirTasa,800);
+
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('/Vale-de-venta-Tiendamax/sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>
