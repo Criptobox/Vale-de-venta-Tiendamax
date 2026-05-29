@@ -158,7 +158,7 @@ hr{border:none;border-top:1px solid var(--border);margin:12px 0}
       </div>
       <div class="r2">
         <div class="fld"><div class="lbl">💵 Recibido CUP</div><input type="number" id="vRecibido" placeholder="0" oninput="calcVuelto()"></div>
-        <div class="fld"><div class="lbl">🔸 Vuelto</div><input type="number" id="vVuelto" readonly placeholder="—"></div>
+        <div class="fld"><div class="lbl">🔸 Vuelto</div><input type="text" id="vVuelto" placeholder="—"></div>
       </div>
       <hr>
       <div class="total-box">
@@ -276,7 +276,11 @@ function calcVuelto(){
   const rec=parseInt(document.getElementById('vRecibido').value)||0;
   const cup=parseInt(document.getElementById('vCUP').value)||0;
   const total=cup+getMens();
-  document.getElementById('vVuelto').value=(rec&&total)?Math.max(0,rec-total):'';
+  // Solo calcula automático si escribiste un "Recibido CUP".
+  // Si no, respeta el vuelto que haya puesto el cliente desde el formulario.
+  if(rec && total){
+    document.getElementById('vVuelto').value=Math.max(0,rec-total)+' MN';
+  }
 }
 
 function onType(){
@@ -296,7 +300,7 @@ function renderChips(text){
   document.getElementById('chips').innerHTML=h;
 }
 function extract(text){
-  const r={cliente:'',telefono:'',direccion:'',articulo:'',precio:'',mensajeria:''};
+  const r={cliente:'',telefono:'',direccion:'',articulo:'',precio:'',mensajeria:'',vuelto:''};
 
   // ── Formato vale con 🔸 ──
   if(text.includes('🔸')){
@@ -335,6 +339,10 @@ function extract(text){
     } else if(ent){
       r.mensajeria = 'Recoge en tienda';
     }
+    // Vuelto: "🔄 Vuelto: Sí, dar 500 MN de vuelto"
+    const vt = gf('🔄');
+    const vm = vt.match(/dar\s+([\d.,]+)\s*(MN|CUP|USD)/i);
+    if(vm) r.vuelto = vm[1].replace(/[.,]/g,'') + ' ' + (vm[2].toUpperCase()==='CUP'?'MN':vm[2].toUpperCase());
     return r;
   }
 
@@ -379,6 +387,7 @@ function extraer(){
   if(ex.articulo) setA('vArticulo',ex.articulo);
   if(ex.precio){setA('vUSD',ex.precio);calcular();}
   if(ex.mensajeria) setA('vMensajeria',ex.mensajeria);
+  if(ex.vuelto) setA('vVuelto',ex.vuelto);
   toast('✅ Datos extraídos');
 }
 function setA(id,val){
@@ -493,7 +502,7 @@ function construirTextoVale(){
 🔸 Artículo y cantidad: ${g('vArticulo').replace(/\n/g,'\n   ')}
 🔸Precio USD/ Zelle: ${g('vUSD')!=='—'?'$'+g('vUSD')+' USD':'—'}
 🔸Precio CUP: ${g('vCUP')!=='—'?parseInt(g('vCUP')).toLocaleString()+' CUP':'—'}
-🔸 Vuelto: ${g('vVuelto')!=='—'?g('vVuelto')+' CUP':'—'}
+🔸 Vuelto: ${g('vVuelto')!=='—'?g('vVuelto'):'—'}
 
 🔸 Total a pagar: ${document.getElementById('vTotal').textContent}
 
