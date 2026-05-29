@@ -116,6 +116,10 @@ textarea{resize:none;line-height:1.5}
           <div class="opcion" id="oVueltoSi" onclick="selVuelto('si')">✅ Sí</div>
           <div class="opcion" id="oVueltoNo" onclick="selVuelto('no')">❌ No</div>
         </div>
+        <div id="campoVueltoMonto" style="display:none;margin-top:10px">
+          <label class="lbl">💸 ¿Con cuánto vas a pagar?</label>
+          <input type="number" id="fVueltoMonto" placeholder="Ej: 5000" inputmode="numeric">
+        </div>
       </div>
     </div>
   </div>
@@ -174,6 +178,7 @@ function selVuelto(op){
   vuelto = op;
   document.getElementById('oVueltoSi').classList.toggle('sel', op==='si');
   document.getElementById('oVueltoNo').classList.toggle('sel', op==='no');
+  document.getElementById('campoVueltoMonto').style.display = op==='si' ? 'block' : 'none';
 }
 
 function enviar(){
@@ -206,7 +211,12 @@ function enviar(){
 
   const prodTexto = prod ? decodeURIComponent(prod) + (precio ? ' — $'+precio+' USD' : '') : '(ver conversación)';
   const entregaTexto = entrega==='mensajeria' ? 'Mensajería a: '+direccion : 'Recoge en tienda';
-  const vueltoTexto = (pago==='CUP' || pago==='USD') ? (vuelto==='si' ? 'Sí necesita vuelto' : 'No necesita vuelto') : 'N/A';
+  const montoVuelto = (document.getElementById('fVueltoMonto').value||'').trim();
+  const vueltoTexto = (pago==='CUP' || pago==='USD')
+    ? (vuelto==='si'
+        ? ('Sí, paga con ' + (montoVuelto ? montoVuelto + (pago==='USD'?' USD':' CUP') : '(no especificó)'))
+        : 'No necesita vuelto')
+    : 'N/A';
 
   const msg = `✅ Nuevo pedido — Tienda Max
 
