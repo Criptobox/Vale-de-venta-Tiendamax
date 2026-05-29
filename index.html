@@ -483,8 +483,9 @@ function guardarWaTienda(){
   if(v.length>=8) localStorage.setItem('waTienda',v);
 }
 function construirUrlFormulario(){
-  // Link corto fijo (solo pide datos del cliente). El número va dentro del propio formulario.
-  return 'https://tinyurl.com/TiendaMax-Pedido';
+  // Link directo (abre en todos los teléfonos, sin bloqueos de acortadores).
+  // El número de la tienda va incluido para que el pedido llegue a tu WhatsApp.
+  return 'https://criptobox.github.io/Vale-de-venta-Tiendamax/pedido.html?wa=' + getNumeroTienda();
 }
 function mensajeFormulario(url){
   return '✨ *TIENDA MAX* ✨\n'
