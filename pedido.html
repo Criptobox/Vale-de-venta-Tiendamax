@@ -166,7 +166,7 @@ function selPago(op){
   pago = op;
   document.getElementById('oCUP').classList.toggle('sel', op==='CUP');
   document.getElementById('oUSD').classList.toggle('sel', op==='USD');
-  document.getElementById('campoVuelto').style.display = op==='CUP' ? 'block' : 'none';
+  document.getElementById('campoVuelto').style.display = (op==='CUP' || op==='USD') ? 'block' : 'none';
   document.getElementById('ePago').classList.remove('show');
 }
 
@@ -206,7 +206,7 @@ function enviar(){
 
   const prodTexto = prod ? decodeURIComponent(prod) + (precio ? ' — $'+precio+' USD' : '') : '(ver conversación)';
   const entregaTexto = entrega==='mensajeria' ? 'Mensajería a: '+direccion : 'Recoge en tienda';
-  const vueltoTexto = pago==='CUP' ? (vuelto==='si' ? 'Sí necesita vuelto' : 'No necesita vuelto') : 'N/A';
+  const vueltoTexto = (pago==='CUP' || pago==='USD') ? (vuelto==='si' ? 'Sí necesita vuelto' : 'No necesita vuelto') : 'N/A';
 
   const msg = `✅ Nuevo pedido — Tienda Max
 
