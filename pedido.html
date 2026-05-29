@@ -157,6 +157,8 @@ const params = new URLSearchParams(window.location.search);
 const prod = params.get('p') || '';
 const precio = params.get('precio') || '';
 const wa = params.get('wa') || '5354320170';
+// Normalizar: si viene el número cubano sin código país (8 dígitos), añadir 53
+const waNorm = (/^\d{8}$/.test(wa)) ? '53'+wa : wa;
 
 if(prod){
   document.getElementById('prodBox').classList.add('show');
@@ -264,9 +266,7 @@ function enviar(){
     : 'N/A';
 
   const ubiTexto = ubiCoords
-    ? ('\n📍 Ubicación GPS:'
-        + '\n   🗺️ Maps.me / apps: geo:' + ubiCoords
-        + '\n   🌎 Google Maps: https://maps.google.com/?q=' + ubiCoords)
+    ? '\n📍 Ubicación GPS: https://maps.google.com/?q=' + ubiCoords
     : '';
 
   const msg = `✅ Nuevo pedido — Tienda Max
@@ -278,7 +278,7 @@ function enviar(){
 💵 Pago: ${pago}
 🔄 Vuelto: ${vueltoTexto}${nota ? '\n📝 Nota: '+nota : ''}`;
 
-  const waUrl = 'https://wa.me/'+wa+'?text='+encodeURIComponent(msg);
+  const waUrl = 'https://wa.me/'+waNorm+'?text='+encodeURIComponent(msg);
   try{
     const a=document.createElement('a');
     a.href=waUrl; a.target='_blank'; a.rel='noopener';

@@ -483,18 +483,23 @@ function guardarWaTienda(){
   if(v.length>=8) localStorage.setItem('waTienda',v);
 }
 function construirUrlFormulario(){
-  const art = document.getElementById('vArticulo').value.trim();
-  const usd = document.getElementById('vUSD').value.trim();
-  const base = 'https://criptobox.github.io/Vale-de-venta-Tiendamax/pedido.html';
-  let params = ['wa=' + getNumeroTienda()];
-  if(art) params.push('p=' + encodeURIComponent(art.split('\n')[0]));
-  if(usd) params.push('precio=' + encodeURIComponent(usd));
-  return base + '?' + params.join('&');
+  // Link corto fijo (solo pide datos del cliente). El número va dentro del propio formulario.
+  return 'https://tinyurl.com/TiendaMax-Pedido';
+}
+function mensajeFormulario(url){
+  return '✨ *TIENDA MAX* ✨\n'
+    + '━━━━━━━━━━━━━━━\n'
+    + '¡Gracias por tu pedido! 🛒\n\n'
+    + 'Para coordinar la entrega, completa\n'
+    + 'tus datos en este formulario rápido\n'
+    + '(solo toma 1 minuto) 👇\n\n'
+    + '📝 ' + url + '\n\n'
+    + '━━━━━━━━━━━━━━━\n'
+    + '🙏 _¡Gracias por confiar en nosotros!_';
 }
 function enviarFormularioCliente(){
   const url = construirUrlFormulario();
-  const msg = 'Para completar tu pedido llena este formulario rápido:\n' + url;
-  const waUrl = 'https://wa.me/?text=' + encodeURIComponent(msg);
+  const waUrl = 'https://wa.me/?text=' + encodeURIComponent(mensajeFormulario(url));
   // Abrir WhatsApp directo, dentro del gesto del usuario (fiable en móvil)
   try{
     const a=document.createElement('a');
@@ -522,9 +527,8 @@ function abrirWhatsApp(url){
 }
 function abrirFormWA(){
   const url = document.getElementById('modalFormUrl').textContent;
-  const msg = 'Para completar tu pedido llena este formulario rápido:\n' + url;
   // Abrir WhatsApp PRIMERO (dentro del gesto), cerrar el modal después.
-  abrirWhatsApp('https://wa.me/?text=' + encodeURIComponent(msg));
+  abrirWhatsApp('https://wa.me/?text=' + encodeURIComponent(mensajeFormulario(url)));
   setTimeout(function(){ document.getElementById('modalForm').classList.remove('open'); }, 100);
 }
 function copiarEnlaceForm(){
