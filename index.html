@@ -302,6 +302,34 @@ function renderChips(text){
 function extract(text){
   const r={cliente:'',telefono:'',direccion:'',articulo:'',precio:'',mensajeria:'',vuelto:''};
 
+  // ── Formato carrito tienda (NUEVA ORDEN — TIENDAMAX) ──
+  if(/NUEVA ORDEN|TIENDAMAX/i.test(text) && text.includes('🔹')){
+    // Productos: líneas "🔹 *1.* Nombre" seguidas de "▸ Cant: *N* · $X USD c/u"
+    const lineas = text.split('\n');
+    const items = [];
+    for(let i=0;i<lineas.length;i++){
+      const pm = lineas[i].match(/🔹\s*\*?\d+\.?\*?\s*(.+)/);
+      if(pm){
+        let nombre = pm[1].replace(/\*/g,'').replace(/:\s*$/,'').trim();
+        // buscar cantidad y precio en la línea siguiente
+        let cant='', precio='';
+        if(lineas[i+1]){
+          const cm = lineas[i+1].match(/Cant:\s*\*?(\d+)\*?/i);
+          const prm = lineas[i+1].match(/\$\s*([\d.,]+)\s*USD/i);
+          if(cm) cant = cm[1];
+          if(prm) precio = prm[1];
+        }
+        items.push(nombre + (cant?(' x'+cant):'') + (precio?(' — $'+precio+' USD c/u'):''));
+      }
+    }
+    if(items.length) r.articulo = items.join('\n');
+    // Subtotal en USD
+    const sub = text.match(/Subtotal:\*?\s*\$?\s*([\d.,]+)\s*USD/i);
+    if(sub) r.precio = sub[1].replace(/,/g,'');
+    // Este formato NO trae cliente/teléfono/dirección (vienen aparte)
+    return r;
+  }
+
   // ── Formato vale con 🔸 ──
   if(text.includes('🔸')){
     const get = (key) => {
@@ -381,14 +409,35 @@ function extraer(){
   const text=document.getElementById('pasteArea').innerText.trim();
   if(!text){toast('⚠️ Pega un mensaje primero');return;}
   const ex=extract(text);
-  if(ex.cliente) setA('vCliente',ex.cliente);
-  if(ex.telefono) setA('vTelefono',ex.telefono);
-  if(ex.direccion){setA('vDireccion',ex.direccion);chkMapa();}
-  if(ex.articulo) setA('vArticulo',ex.articulo);
-  if(ex.precio){setA('vUSD',ex.precio);calcular();}
-  if(ex.mensajeria) setA('vMensajeria',ex.mensajeria);
-  if(ex.vuelto) setA('vVuelto',ex.vuelto);
-  toast('✅ Datos extraídos');
+
+  // Acumulativo: cada campo solo se rellena si el mensaje trae ese dato.
+  // Así puedes pegar el carrito (productos) y luego el formulario (datos del
+  // cliente) y se va completando el vale sin borrar lo anterior.
+  let nuevos=0;
+  const poner=(id,val,extra)=>{
+    if(!val) return;
+    const el=document.getElementById(id);
+    // El artículo del carrito NO se pisa con el del formulario si ya hay productos
+    if(id==='vArticulo' && el.value.trim() && el.value.trim()!=='—') return;
+    // El precio del carrito NO se pisa si ya hay uno (el formulario puede no traerlo)
+    if(id==='vUSD' && el.value.trim()) return;
+    setA(id,val); nuevos++;
+    if(extra) extra();
+  };
+  poner('vCliente',ex.cliente);
+  poner('vTelefono',ex.telefono);
+  poner('vDireccion',ex.direccion,chkMapa);
+  poner('vArticulo',ex.articulo);
+  poner('vUSD',ex.precio,calcular);
+  poner('vMensajeria',ex.mensajeria);
+  poner('vVuelto',ex.vuelto);
+
+  // Limpiar el área para pegar la siguiente parte cómodamente
+  document.getElementById('pasteArea').innerText='';
+  document.getElementById('chips').innerHTML='';
+  document.getElementById('parseBtn').classList.remove('ready');
+
+  toast(nuevos? '✅ '+nuevos+' dato(s) añadidos — pega la otra parte si falta' : 'ℹ️ Nada nuevo que añadir');
 }
 function setA(id,val){
   const el=document.getElementById(id);
