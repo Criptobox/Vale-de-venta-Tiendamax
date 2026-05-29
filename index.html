@@ -371,9 +371,11 @@ function extract(text){
     const vt = gf('🔄');
     const vm = vt.match(/dar\s+([\d.,]+)\s*(MN|CUP|USD)/i);
     if(vm) r.vuelto = vm[1].replace(/[.,]/g,'') + ' ' + (vm[2].toUpperCase()==='CUP'?'MN':vm[2].toUpperCase());
-    // Ubicación GPS: "📍 Ubicación GPS: https://maps.google.com/?q=..."
-    const um = text.match(/Ubicaci[óo]n GPS:\s*(https?:\/\/\S+)/i);
-    if(um) r.ubicacion = um[1].trim();
+    // Ubicación GPS: preferir el enlace clicable de Google Maps; si no, el geo:
+    const gm = text.match(/https?:\/\/maps\.google\.com\/\?q=[\d.,\-]+/i);
+    const geo = text.match(/geo:[\d.,\-]+/i);
+    if(gm) r.ubicacion = gm[0].trim();
+    else if(geo) r.ubicacion = geo[0].trim();
     return r;
   }
 

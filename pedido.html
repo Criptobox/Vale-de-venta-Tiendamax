@@ -263,7 +263,11 @@ function enviar(){
         : 'No necesita vuelto')
     : 'N/A';
 
-  const ubiTexto = ubiCoords ? '\n📍 Ubicación GPS: https://maps.google.com/?q='+ubiCoords : '';
+  const ubiTexto = ubiCoords
+    ? ('\n📍 Ubicación GPS:'
+        + '\n   🗺️ Maps.me / apps: geo:' + ubiCoords
+        + '\n   🌎 Google Maps: https://maps.google.com/?q=' + ubiCoords)
+    : '';
 
   const msg = `✅ Nuevo pedido — Tienda Max
 
