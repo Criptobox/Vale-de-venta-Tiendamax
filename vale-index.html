@@ -129,7 +129,7 @@ hr{border:none;border-top:1px solid var(--border);margin:12px 0}
       <div id="mapaBtns" style="display:none">
         <button class="btn-act" onclick="copiarDir()">📋 Copiar dirección para Maps.me</button>
       </div>
-      <button class="btn-act" onclick="abrirModalFormulario()">📲 Enviar formulario al cliente</button>
+      <button class="btn-act" onclick="enviarFormularioCliente()">📲 Enviar formulario al cliente</button>
       <button class="btn-act" style="margin-top:6px;color:var(--muted);border-color:var(--border)" onclick="copiarSolicitud()">📋 Copiar solicitud manual</button>
       <div class="lbl" style="margin-top:12px">📍 Ubicación WhatsApp</div>
       <button class="ubi-btn" id="ubiBtnPaste" onclick="pegarUbi()">📌 Pegar enlace de ubicación</button>
@@ -414,6 +414,17 @@ function construirUrlFormulario(){
   if(art) params.push('p=' + encodeURIComponent(art.split('\n')[0]));
   if(usd) params.push('precio=' + encodeURIComponent(usd));
   return base + '?' + params.join('&');
+}
+function enviarFormularioCliente(){
+  const url = construirUrlFormulario();
+  const msg = 'Para completar tu pedido llena este formulario rápido:\n' + url;
+  const waUrl = 'https://wa.me/?text=' + encodeURIComponent(msg);
+  // Abrir WhatsApp directo, dentro del gesto del usuario (fiable en móvil)
+  try{
+    const a=document.createElement('a');
+    a.href=waUrl; a.target='_blank'; a.rel='noopener';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  }catch(e){ location.href = waUrl; }
 }
 function abrirModalFormulario(){
   document.getElementById('modalFormUrl').textContent = construirUrlFormulario();
