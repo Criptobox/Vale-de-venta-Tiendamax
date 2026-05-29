@@ -300,7 +300,7 @@ function renderChips(text){
   document.getElementById('chips').innerHTML=h;
 }
 function extract(text){
-  const r={cliente:'',telefono:'',direccion:'',articulo:'',precio:'',mensajeria:'',vuelto:''};
+  const r={cliente:'',telefono:'',direccion:'',articulo:'',precio:'',mensajeria:'',vuelto:'',ubicacion:''};
 
   // ── Formato carrito tienda (NUEVA ORDEN — TIENDAMAX) ──
   if(/NUEVA ORDEN|TIENDAMAX/i.test(text) && text.includes('🔹')){
@@ -371,6 +371,9 @@ function extract(text){
     const vt = gf('🔄');
     const vm = vt.match(/dar\s+([\d.,]+)\s*(MN|CUP|USD)/i);
     if(vm) r.vuelto = vm[1].replace(/[.,]/g,'') + ' ' + (vm[2].toUpperCase()==='CUP'?'MN':vm[2].toUpperCase());
+    // Ubicación GPS: "📍 Ubicación GPS: https://maps.google.com/?q=..."
+    const um = text.match(/Ubicaci[óo]n GPS:\s*(https?:\/\/\S+)/i);
+    if(um) r.ubicacion = um[1].trim();
     return r;
   }
 
@@ -431,6 +434,7 @@ function extraer(){
   poner('vUSD',ex.precio,calcular);
   poner('vMensajeria',ex.mensajeria);
   poner('vVuelto',ex.vuelto);
+  if(ex.ubicacion){ mostrarUbi(ex.ubicacion); nuevos++; }
 
   // Limpiar el área para pegar la siguiente parte cómodamente
   document.getElementById('pasteArea').innerText='';

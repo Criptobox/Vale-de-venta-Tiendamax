@@ -1,5 +1,5 @@
 // Vale del Gestor — Tienda Max · Service Worker
-const CACHE = 'vale-max-v8';
+const CACHE = 'vale-max-v9';
 const ASSETS = [
   '/Vale-de-venta-Tiendamax/',
   '/Vale-de-venta-Tiendamax/index.html',
