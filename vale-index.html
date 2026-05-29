@@ -93,6 +93,8 @@ hr{border:none;border-top:1px solid var(--border);margin:12px 0}
       <button class="btn-gold" style="margin-top:0;padding:11px 18px;font-size:14px;border-radius:10px;width:auto" onclick="guardarTasa()">✓</button>
     </div>
     <p style="font-size:11px;color:var(--dim);margin-top:8px">+10 CUP se agrega automático para pagos en MN.</p>
+    <p id="tasaAutoMsg" style="font-size:11px;color:var(--green-light);margin-top:6px;text-align:center"></p>
+    <button class="btn-ghost" style="margin-top:8px;font-size:12px" onclick="cargarTasaAuto();toast('🔄 Buscando tasa...')">🔄 Traer tasa de tiendamax.org</button>
   </div>
 </div>
 
@@ -203,6 +205,27 @@ hr{border:none;border-top:1px solid var(--border);margin:12px 0}
 <script>
 let tasa = parseInt(localStorage.getItem('tasaMax')||'0')||0;
 let _ubi = null;
+
+// Carga la tasa base (elToque) desde tu tienda principal, que ya la actualiza sola.
+// tasaMN en config.json es la base SIN el +10 (el vale le suma el +10 al calcular).
+async function cargarTasaAuto(){
+  try{
+    const ctrl = new AbortController();
+    const t = setTimeout(()=>ctrl.abort(), 6000);
+    const r = await fetch('https://tiendamax.org/config.json?t='+Date.now(), {signal:ctrl.signal});
+    clearTimeout(t);
+    if(!r.ok) return;
+    const cfg = await r.json();
+    const base = parseInt(cfg.tasaMN);
+    if(base && base>=50){
+      tasa = base;
+      localStorage.setItem('tasaMax', tasa);
+      renderTasa(); calcular();
+      const el = document.getElementById('tasaAutoMsg');
+      if(el) el.textContent = '✓ Tasa actualizada desde tiendamax.org';
+    }
+  }catch(e){ /* sin red: se queda la tasa guardada */ }
+}
 
 function renderTasa(){
   document.getElementById('tasaDisp').textContent = tasa||'—';
@@ -397,11 +420,17 @@ function abrirModalFormulario(){
   document.getElementById('modalForm').classList.add('open');
 }
 
+function abrirWhatsApp(url){
+  // En PWA standalone, window.open(_blank) suele bloquearse.
+  // location.href es entregado al sistema y abre WhatsApp de forma fiable.
+  var w = window.open(url, '_blank');
+  if(!w) location.href = url;
+}
 function abrirFormWA(){
   const url = document.getElementById('modalFormUrl').textContent;
   const msg = 'Para completar tu pedido llena este formulario rápido:\n' + url;
-  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
   document.getElementById('modalForm').classList.remove('open');
+  abrirWhatsApp('https://wa.me/?text=' + encodeURIComponent(msg));
 }
 function copiarEnlaceForm(){
   const url = document.getElementById('modalFormUrl').textContent;
@@ -505,7 +534,9 @@ function fd(){return new Date().toLocaleString('es-ES',{day:'2-digit',month:'2-d
 renderTasa();
 document.getElementById('vWaTienda').value = localStorage.getItem('waTienda') || '';
 document.getElementById('vFecha').value=fd();
-if(!tasa) setTimeout(abrirTasa,800);
+
+// Intentar cargar la tasa sola desde tiendamax.org; si no había ninguna y falla, pedirla.
+cargarTasaAuto().finally(()=>{ if(!tasa) setTimeout(abrirTasa,800); });
 
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('/Vale-de-venta-Tiendamax/sw.js').catch(()=>{});

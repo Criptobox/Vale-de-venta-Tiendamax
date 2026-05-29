@@ -217,7 +217,9 @@ function enviar(){
 💵 Pago: ${pago}
 🔄 Vuelto: ${vueltoTexto}${nota ? '\n📝 Nota: '+nota : ''}`;
 
-  window.open('https://wa.me/'+wa+'?text='+encodeURIComponent(msg), '_blank');
+  const waUrl = 'https://wa.me/'+wa+'?text='+encodeURIComponent(msg);
+  const w = window.open(waUrl, '_blank');
+  if(!w) location.href = waUrl;
 }
 
 if('serviceWorker' in navigator){
