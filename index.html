@@ -573,6 +573,10 @@ function validarVale(){
   if(g('vTelefono')==='—') faltan.push('teléfono');
   if(g('vArticulo')==='—') faltan.push('artículo');
   if(g('vUSD')==='—' && g('vCUP')==='—') faltan.push('precio');
+  // Si hay mensajería (no es recoge en tienda) pero falta el costo (un número)
+  const mens=g('vMensajeria');
+  const hayMensajeria = mens!=='—' && !/recoge/i.test(mens);
+  if(hayMensajeria && !/\d/.test(mens)) faltan.push('costo de la mensajería');
   if(faltan.length){
     toast('⚠️ Falta: '+faltan.join(', '));
     return false;
