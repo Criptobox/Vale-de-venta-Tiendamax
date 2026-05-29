@@ -218,8 +218,11 @@ function enviar(){
 🔄 Vuelto: ${vueltoTexto}${nota ? '\n📝 Nota: '+nota : ''}`;
 
   const waUrl = 'https://wa.me/'+wa+'?text='+encodeURIComponent(msg);
-  const w = window.open(waUrl, '_blank');
-  if(!w) location.href = waUrl;
+  try{
+    const a=document.createElement('a');
+    a.href=waUrl; a.target='_blank'; a.rel='noopener';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  }catch(e){ location.href = waUrl; }
 }
 
 if('serviceWorker' in navigator){

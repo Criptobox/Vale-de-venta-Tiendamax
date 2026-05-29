@@ -421,16 +421,24 @@ function abrirModalFormulario(){
 }
 
 function abrirWhatsApp(url){
-  // En PWA standalone, window.open(_blank) suele bloquearse.
-  // location.href es entregado al sistema y abre WhatsApp de forma fiable.
-  var w = window.open(url, '_blank');
-  if(!w) location.href = url;
+  // Método fiable en móvil/PWA: navegar directo. El navegador lo entrega a WhatsApp.
+  // Se hace de inmediato dentro del gesto del usuario, sin tocar el DOM antes.
+  try{
+    var a = document.createElement('a');
+    a.href = url; a.target = '_blank'; a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }catch(e){
+    location.href = url;
+  }
 }
 function abrirFormWA(){
   const url = document.getElementById('modalFormUrl').textContent;
   const msg = 'Para completar tu pedido llena este formulario rápido:\n' + url;
-  document.getElementById('modalForm').classList.remove('open');
+  // Abrir WhatsApp PRIMERO (dentro del gesto), cerrar el modal después.
   abrirWhatsApp('https://wa.me/?text=' + encodeURIComponent(msg));
+  setTimeout(function(){ document.getElementById('modalForm').classList.remove('open'); }, 100);
 }
 function copiarEnlaceForm(){
   const url = document.getElementById('modalFormUrl').textContent;
