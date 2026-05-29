@@ -127,7 +127,7 @@ hr{border:none;border-top:1px solid var(--border);margin:12px 0}
       <div id="mapaBtns" style="display:none">
         <button class="btn-act" onclick="copiarDir()">📋 Copiar dirección para Maps.me</button>
       </div>
-      <a id="btnFormulario" href="#" target="_blank" onclick="return prepFormulario(this)" class="btn-act" style="text-decoration:none">📲 Enviar formulario al cliente</a>
+      <button class="btn-act" onclick="abrirModalFormulario()">📲 Enviar formulario al cliente</button>
       <button class="btn-act" style="margin-top:6px;color:var(--muted);border-color:var(--border)" onclick="copiarSolicitud()">📋 Copiar solicitud manual</button>
       <div class="lbl" style="margin-top:12px">📍 Ubicación WhatsApp</div>
       <button class="ubi-btn" id="ubiBtnPaste" onclick="pegarUbi()">📌 Pegar enlace de ubicación</button>
@@ -383,17 +383,18 @@ function guardarWaTienda(){
   const v=document.getElementById('vWaTienda').value.replace(/\D/g,'');
   if(v.length>=8) localStorage.setItem('waTienda',v);
 }
-function prepFormulario(el){
+function construirUrlFormulario(){
   const art = document.getElementById('vArticulo').value.trim();
   const usd = document.getElementById('vUSD').value.trim();
   const base = 'https://criptobox.github.io/Vale-de-venta-Tiendamax/pedido.html';
   let params = ['wa=' + getNumeroTienda()];
   if(art) params.push('p=' + encodeURIComponent(art.split('\n')[0]));
   if(usd) params.push('precio=' + encodeURIComponent(usd));
-  const url = base + '?' + params.join('&');
-  const msg = 'Para completar tu pedido llena este formulario:\n' + url;
-  el.href = 'https://wa.me/?text=' + encodeURIComponent(msg);
-  return true;
+  return base + '?' + params.join('&');
+}
+function abrirModalFormulario(){
+  document.getElementById('modalFormUrl').textContent = construirUrlFormulario();
+  document.getElementById('modalForm').classList.add('open');
 }
 
 function abrirFormWA(){
