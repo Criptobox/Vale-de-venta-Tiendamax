@@ -163,7 +163,8 @@ hr{border:none;border-top:1px solid var(--border);margin:12px 0}
       <hr>
       <div class="total-box">
         <div style="font-size:13px;color:var(--green-light)">🔸 Total a pagar</div>
-        <div style="font-size:22px;font-weight:700;color:var(--green-light);font-family:'Playfair Display',serif" id="vTotal">—</div>
+        <div style="font-size:26px;font-weight:700;color:var(--green-light);font-family:'Playfair Display',serif" id="vTotal">—</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:2px" id="vTotalUsd"></div>
       </div>
       <div class="fld" style="margin-top:12px"><div class="lbl">📅 Fecha y hora</div><input type="text" id="vFecha" readonly></div>
     </div>
@@ -178,12 +179,14 @@ hr{border:none;border-top:1px solid var(--border);margin:12px 0}
   </div>
 
   <button class="btn-gold" onclick="copiarVale()">📋 Copiar Vale para WhatsApp</button>
+  <button class="btn-gold" style="background:linear-gradient(135deg,#25D366,#1da851);color:#fff" onclick="enviarValeWA()">📱 Enviar Vale por WhatsApp</button>
   <button class="btn-ghost" onclick="resetForm()">🔄 Nuevo cliente</button>
 </div>
 
 <div class="tab-panel" id="tab-historial">
   <div class="sec" style="margin-top:14px">
     <div class="sec-hdr"><div class="dot"></div>VALES RECIENTES</div>
+    <input type="text" id="histBuscar" placeholder="🔍 Buscar por nombre, teléfono o producto" oninput="filtrarHist()" style="width:100%;box-sizing:border-box;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:11px;color:#fff;font-size:13px;margin-bottom:12px">
     <div class="sec-body" id="histBody"><div class="hist-empty">Aún no hay vales guardados</div></div>
   </div>
 </div>
@@ -257,7 +260,16 @@ function calcular(){
 function recalc(){
   const cup=parseInt(document.getElementById('vCUP').value)||0;
   const mens=getMens();
-  document.getElementById('vTotal').textContent=cup?(cup+mens).toLocaleString()+' CUP':'—';
+  const totalCup=cup+mens;
+  document.getElementById('vTotal').textContent=cup?totalCup.toLocaleString()+' CUP':'—';
+  // Equivalente en USD de referencia (usando la tasa + 10)
+  const usdRef=document.getElementById('vTotalUsd');
+  if(cup && tasa){
+    const usdEq=(totalCup/(tasa+10));
+    usdRef.textContent='≈ $'+usdEq.toFixed(2)+' USD'+(mens?' (incl. mensajería)':'');
+  } else {
+    usdRef.textContent='';
+  }
   calcVuelto();
 }
 function calcVuelto(){
@@ -468,9 +480,11 @@ function copiarSolicitud(){
 }
 
 function g(id){return document.getElementById(id).value.trim()||'—';}
-function copiarVale(){
+
+// Construye el texto del vale (reutilizable para copiar y enviar)
+function construirTextoVale(){
   const ubiLinea=_ubi?'\n📍 Ubicación: '+_ubi:'';
-  const texto=`🔸Promotor: ${g('vPromotor')}
+  return `🔸Promotor: ${g('vPromotor')}
 
 🔸 Nombre Cliente: ${g('vCliente')}
 🔸Teléfono Cliente: ${g('vTelefono')}
@@ -492,20 +506,59 @@ function copiarVale(){
 * Solo aceptamos hasta cinco billetes de 1 USD por compra.
 * Los pagos en CUP deben ser con denominación de 50 en adelante.
 * Solo se aceptan billetes en buen estado (ni rotos ni manchados)`;
-  copiarTexto(texto,'✅ Vale copiado — pégalo en WhatsApp');
+}
+
+// Valida los campos clave antes de generar el vale. Devuelve true si está completo.
+function validarVale(){
+  const faltan=[];
+  if(g('vCliente')==='—') faltan.push('nombre del cliente');
+  if(g('vTelefono')==='—') faltan.push('teléfono');
+  if(g('vArticulo')==='—') faltan.push('artículo');
+  if(g('vUSD')==='—' && g('vCUP')==='—') faltan.push('precio');
+  if(faltan.length){
+    toast('⚠️ Falta: '+faltan.join(', '));
+    return false;
+  }
+  return true;
+}
+
+function copiarVale(){
+  if(!validarVale()) return;
+  copiarTexto(construirTextoVale(),'✅ Vale copiado — pégalo en WhatsApp');
+  guardarHist();
+}
+
+function enviarValeWA(){
+  if(!validarVale()) return;
+  const waUrl='https://wa.me/?text='+encodeURIComponent(construirTextoVale());
+  try{
+    const a=document.createElement('a');
+    a.href=waUrl; a.target='_blank'; a.rel='noopener';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  }catch(e){ location.href=waUrl; }
   guardarHist();
 }
 
 function guardarHist(){
   const hist=JSON.parse(localStorage.getItem('valesMax')||'[]');
-  hist.unshift({cliente:g('vCliente'),articulo:g('vArticulo').split('\n')[0],total:document.getElementById('vTotal').textContent,fecha:g('vFecha'),ts:Date.now()});
+  hist.unshift({cliente:g('vCliente'),telefono:g('vTelefono'),articulo:g('vArticulo').split('\n')[0],total:document.getElementById('vTotal').textContent,fecha:g('vFecha'),ts:Date.now()});
   localStorage.setItem('valesMax',JSON.stringify(hist.slice(0,30)));
 }
-function renderHist(){
+function renderHist(filtro){
   const hist=JSON.parse(localStorage.getItem('valesMax')||'[]');
   const body=document.getElementById('histBody');
   if(!hist.length){body.innerHTML='<div class="hist-empty">Aún no hay vales guardados</div>';return;}
-  body.innerHTML=hist.map(v=>`<div class="hist-item"><div style="display:flex;justify-content:space-between;margin-bottom:3px"><div style="font-size:14px;font-weight:500">${v.cliente}</div><div style="font-size:11px;color:var(--dim)">${v.fecha}</div></div><div style="font-size:12px;color:var(--muted)">${v.articulo} · <span style="color:var(--green-light)">${v.total}</span></div></div>`).join('');
+  const q=(filtro||'').trim().toLowerCase();
+  const lista=q?hist.filter(v=>
+    (v.cliente||'').toLowerCase().includes(q) ||
+    (v.telefono||'').toLowerCase().includes(q) ||
+    (v.articulo||'').toLowerCase().includes(q)
+  ):hist;
+  if(!lista.length){body.innerHTML='<div class="hist-empty">Sin resultados para "'+q+'"</div>';return;}
+  body.innerHTML=lista.map(v=>`<div class="hist-item"><div style="display:flex;justify-content:space-between;margin-bottom:3px"><div style="font-size:14px;font-weight:500">${v.cliente}</div><div style="font-size:11px;color:var(--dim)">${v.fecha}</div></div><div style="font-size:12px;color:var(--muted)">${v.telefono&&v.telefono!=='—'?'📞 '+v.telefono+' · ':''}${v.articulo} · <span style="color:var(--green-light)">${v.total}</span></div></div>`).join('');
+}
+function filtrarHist(){
+  renderHist(document.getElementById('histBuscar').value);
 }
 
 function copiarTexto(texto,msg){
